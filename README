@@ -1,0 +1,8 @@
+ephemeralADMIN
+--------------
+
+ephemeralADMIN is an administration page that connects with a running version of
+ephemeralREST to enable creation of API keys and set any restrictions to prevent
+overuse and abuse by users.
+
+This is still in early development and will expand as the service requires.
