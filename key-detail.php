@@ -77,6 +77,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'set-admin' && defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION) {
+        // Prevent removing admin from your own key
+        $self_id = auth_user()['id'] ?? null;
+        if ((string)$self_id === (string)$key_id) {
+            flash_set('error', 'You cannot change admin access on your own key.');
+        } else {
+            $grant  = isset($_POST['grant']);
+            $result = my_api_post("/admin/keys/{$key_id}/set-admin", ['admin' => $grant]);
+            flash_set($result['ok'] ? 'success' : 'error',
+                $result['ok']
+                    ? ($grant ? 'Admin access granted.' : 'Admin access revoked.')
+                    : ($result['data']['error'] ?? 'Action failed.'));
+        }
+    }
+
     header("Location: /key-detail.php?id={$key_id}");
     exit;
 }
@@ -153,6 +168,45 @@ require_once __DIR__ . '/includes/header.php';
           </form>
         </div>
       </div>
+
+      <?php if (defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION): ?>
+        <?php $is_self = (string)(auth_user()['id'] ?? '') === (string)$key_id; ?>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card__head"><span class="card__title">Admin Access</span></div>
+          <div class="card__body">
+            <?php if ($is_self): ?>
+              <p style="font-size:13px; color:var(--ink-light);">
+                You cannot change admin access on your own key.
+              </p>
+            <?php elseif (!empty($key['admin'])): ?>
+              <p style="font-size:13px; color:var(--ink-light); margin-bottom:14px;">
+                This key has admin access. Revoking it will remove all administrative
+                privileges immediately.
+              </p>
+              <form method="POST">
+                <input type="hidden" name="action" value="set-admin">
+                <button type="submit" class="btn btn--danger"
+                        data-confirm="Revoke admin access from '<?= htmlspecialchars($key['identifier'] ?? '') ?>'?">
+                  Revoke Admin Access
+                </button>
+              </form>
+            <?php else: ?>
+              <p style="font-size:13px; color:var(--ink-light); margin-bottom:14px;">
+                Granting admin access allows this key to manage all other keys,
+                approve registrations, and access all admin-only endpoints.
+              </p>
+              <form method="POST">
+                <input type="hidden" name="action" value="set-admin">
+                <input type="hidden" name="grant"  value="1">
+                <button type="submit" class="btn btn--danger"
+                        data-confirm="Grant admin access to '<?= htmlspecialchars($key['identifier'] ?? '') ?>'?">
+                  Grant Admin Access
+                </button>
+              </form>
+            <?php endif; ?>
+          </div>
+        </div>
+      <?php endif; ?>
 
       <div class="card">
         <div class="card__head"><span class="card__title">Enable / Disable</span></div>

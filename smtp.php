@@ -166,7 +166,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div class="form-group">
-          <label for="smtp-from">From Address <span class="label-hint">optional — defaults to username</span></label>
+          <label for="smtp-from">From Email Address <span class="label-hint">optional — defaults to username</span></label>
           <input type="text" id="smtp-from"
                  placeholder="ephemeralREST &lt;no-reply@example.com&gt;"
                  value="<?= htmlspecialchars($cfg['from_addr'] ?? '') ?>">

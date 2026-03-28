@@ -45,6 +45,7 @@ $admin_nav = [
     'register-key'    => ['label' => 'Register Key',   'icon' => '◇'],
     'class-limits'    => ['label' => 'Class Limits',   'icon' => '⊟'],
     'smtp'            => ['label' => 'SMTP Settings',   'icon' => '✉'],
+    'email-templates' => ['label' => 'Email Templates', 'icon' => '✎'],
 ];
 
 $domain_nav = [
@@ -95,7 +96,7 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
     <nav class="sidebar__nav">
       <?php if ($is_admin): ?>
         <div class="sidebar__section">Admin</div>
-        <?php foreach (['portal-admin','registrations','keys','class-limits','smtp'] as $page): ?>
+        <?php foreach (['portal-admin','registrations','keys','class-limits','smtp','email-templates'] as $page): ?>
           <a href="/<?= $page ?>.php"
              class="sidebar__link <?= $current_page === $page ? 'sidebar__link--active' : '' ?>">
             <span class="sidebar__icon"><?= $nav[$page]['icon'] ?></span>

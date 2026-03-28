@@ -36,5 +36,11 @@ define('SITE_VERSION',  '1.0');
 // Session timeout in seconds (30 minutes)
 define('SESSION_TIMEOUT', 1800);
 
+// Allow administrators to grant or revoke admin access on other keys.
+// Set to false to lock down admin promotion entirely — useful once your
+// admin keys are established and you don't want the portal to be able
+// to create new admins.
+define('ALLOW_ADMIN_PROMOTION', true);
+
 // Timezone for displaying dates
 date_default_timezone_set('UTC');

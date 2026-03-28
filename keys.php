@@ -84,11 +84,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
         $result = my_api_post("/admin/keys/{$key_id}/rotate");
         if ($result['ok']) {
             $new_key = $result['data']['api_key'] ?? '';
-            // Email is handled server-side in the API — just return the key
             echo json_encode(['ok' => true, 'message' => 'Key rotated.', 'new_key' => $new_key]);
         } else {
             echo json_encode(['ok' => false, 'error' => $result['data']['error'] ?? 'Rotation failed.']);
         }
+        exit;
+    }
+
+    if ($action === 'set-admin' && defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION) {
+        $self_id = auth_user()['id'] ?? null;
+        if ((string)$self_id === (string)$key_id) {
+            echo json_encode(['ok' => false, 'error' => 'You cannot change admin access on your own key.']);
+            exit;
+        }
+        $grant  = !empty($input['grant']);
+        $result = my_api_post("/admin/keys/{$key_id}/set-admin", ['admin' => $grant]);
+        echo json_encode($result['ok']
+            ? ['ok' => true, 'message' => $grant ? 'Admin access granted.' : 'Admin access revoked.', 'admin' => $grant]
+            : ['ok' => false, 'error' => extractApiError($result)]);
         exit;
     }
 
@@ -267,6 +280,15 @@ require_once __DIR__ . '/includes/header.php';
         <div style="display:flex; gap:8px;" id="status-actions"></div>
       </div>
 
+      <?php if (defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION): ?>
+      <!-- Admin Access -->
+      <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;" id="admin-access-section">
+        <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:8px;">Admin Access</p>
+        <p style="font-size:13px;color:var(--ink-light);margin-bottom:12px;" id="admin-access-desc"></p>
+        <div style="display:flex; gap:8px;" id="admin-access-actions"></div>
+      </div>
+      <?php endif; ?>
+
       <p id="key-modal-error" style="color:var(--error);font-size:13px;margin-top:12px;display:none;"></p>
     </div>
     <div class="modal__footer">
@@ -278,7 +300,8 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <script>
-let currentKeyActive = true;
+let currentKeyAdmin  = false;
+let currentKeyIsSelf = false;
 
 function openKeyModal(key) {
   document.getElementById('key-id').value                   = key.id;
@@ -300,7 +323,75 @@ function openKeyModal(key) {
     statusDiv.innerHTML = '<button class="btn btn--success btn--sm" onclick="toggleKey(\'enable\')">Enable Key</button>';
   }
 
+  // Admin access section
+  const adminSection = document.getElementById('admin-access-section');
+  if (adminSection) {
+    currentKeyAdmin  = !!key.admin;
+    currentKeyIsSelf = key.is_self ?? false;
+    renderAdminSection();
+  }
+
   document.getElementById('keyModal').classList.add('is-open');
+}
+
+function renderAdminSection() {
+  const desc    = document.getElementById('admin-access-desc');
+  const actions = document.getElementById('admin-access-actions');
+  if (!desc || !actions) return;
+
+  if (currentKeyIsSelf) {
+    desc.textContent    = 'You cannot change admin access on your own key.';
+    actions.innerHTML   = '';
+  } else if (currentKeyAdmin) {
+    desc.textContent    = 'This key has admin access. Revoking it will remove all administrative privileges immediately.';
+    actions.innerHTML   = '<button class="btn btn--danger btn--sm" onclick="toggleAdmin(false)">Revoke Admin Access</button>';
+  } else {
+    desc.textContent    = 'Granting admin access allows this key to manage all other keys, approve registrations, and access all admin-only endpoints.';
+    actions.innerHTML   = '<button class="btn btn--danger btn--sm" onclick="toggleAdmin(true)">Grant Admin Access</button>';
+  }
+}
+
+async function toggleAdmin(grant) {
+  const keyId = document.getElementById('key-id').value;
+  const errEl = document.getElementById('key-modal-error');
+  errEl.style.display = 'none';
+
+  const confirmMsg = grant
+    ? 'Grant admin access to this key? It will have full administrative privileges.'
+    : 'Revoke admin access? This key will no longer be able to manage the platform.';
+  if (!confirm(confirmMsg)) return;
+
+  try {
+    const res  = await fetch('/keys.php', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body:    JSON.stringify({ action: 'set-admin', key_id: parseInt(keyId), grant }),
+    });
+    const data = await res.json();
+    if (!data.status) data.status = res.status;
+
+    if (data.ok) {
+      currentKeyAdmin = !!data.admin;
+      renderAdminSection();
+      // Update admin badge in table row if present
+      const titleCell = document.querySelector(`#key-row-${keyId} td:first-child`);
+      if (titleCell) {
+        const existing = titleCell.querySelector('.badge--warning');
+        if (currentKeyAdmin && !existing) {
+          titleCell.insertAdjacentHTML('beforeend', ' <span class="badge badge--warning" style="margin-left:6px;font-size:10px;">admin</span>');
+        } else if (!currentKeyAdmin && existing) {
+          existing.remove();
+        }
+      }
+      showFlash('success', data.message);
+    } else {
+      errEl.textContent   = apiError(data);
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent   = 'Network error — please try again.';
+    errEl.style.display = 'block';
+  }
 }
 
 function closeModal(id) {
