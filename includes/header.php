@@ -44,17 +44,20 @@ $admin_nav = [
     'keys'            => ['label' => 'Keys',           'icon' => '◆'],
     'register-key'    => ['label' => 'Register Key',   'icon' => '◇'],
     'class-limits'    => ['label' => 'Class Limits',   'icon' => '⊟'],
-    'smtp'            => ['label' => 'SMTP Settings',   'icon' => '✉'],
-    'email-templates' => ['label' => 'Email Templates', 'icon' => '✎'],
+    'smtp'            => ['label' => 'SMTP Settings',  'icon' => '✉'],
+    'email-templates' => ['label' => 'Email Templates','icon' => '✎'],
+    'api-tester'      => ['label' => 'API Tester',     'icon' => '⌁'],
 ];
 
 $domain_nav = [
-    'portal-domain'   => ['label' => 'My Portal',     'icon' => '◈'],
-    'register-key'    => ['label' => 'Register Key',  'icon' => '◇'],
+    'portal-domain'   => ['label' => 'My Portal',   'icon' => '◈'],
+    'register-key'    => ['label' => 'Register Key', 'icon' => '◇'],
+    'api-tester'      => ['label' => 'API Tester',   'icon' => '⌁'],
 ];
 
 $user_nav = [
-    'portal-user'     => ['label' => 'My Portal',     'icon' => '◈'],
+    'portal-user'     => ['label' => 'My Portal',   'icon' => '◈'],
+    'api-tester'      => ['label' => 'API Tester',   'icon' => '⌁'],
 ];
 
 $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
@@ -96,7 +99,7 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
     <nav class="sidebar__nav">
       <?php if ($is_admin): ?>
         <div class="sidebar__section">Admin</div>
-        <?php foreach (['portal-admin','registrations','keys','class-limits','smtp','email-templates'] as $page): ?>
+        <?php foreach (['portal-admin','registrations','keys','class-limits','smtp','email-templates','api-tester'] as $page): ?>
           <a href="/<?= $page ?>.php"
              class="sidebar__link <?= $current_page === $page ? 'sidebar__link--active' : '' ?>">
             <span class="sidebar__icon"><?= $nav[$page]['icon'] ?></span>

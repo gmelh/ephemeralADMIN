@@ -166,7 +166,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div class="form-group">
-          <label for="smtp-from">From Email Address <span class="label-hint">optional — defaults to username</span></label>
+          <label for="smtp-from">From Address <span class="label-hint">optional — defaults to username</span></label>
           <input type="text" id="smtp-from"
                  placeholder="ephemeralREST &lt;no-reply@example.com&gt;"
                  value="<?= htmlspecialchars($cfg['from_addr'] ?? '') ?>">
@@ -179,9 +179,15 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div class="form-group">
-          <label for="smtp-base-url">API Base URL <span class="label-hint">used in email links</span></label>
+          <label for="smtp-base-url">API Base URL <span class="label-hint">used in admin email links</span></label>
           <input type="url" id="smtp-base-url" placeholder="https://api.example.com"
                  value="<?= htmlspecialchars($cfg['base_url'] ?? 'http://localhost:5000') ?>">
+        </div>
+
+        <div class="form-group">
+          <label for="smtp-portal-url">Portal URL <span class="label-hint">used in verification email links — defaults to API Base URL if blank</span></label>
+          <input type="url" id="smtp-portal-url" placeholder="https://admin.example.com"
+                 value="<?= htmlspecialchars($cfg['portal_url'] ?? '') ?>">
         </div>
 
         <!-- TLS / SSL toggles -->
@@ -308,6 +314,7 @@ function getFormValues() {
     from_addr:   document.getElementById('smtp-from').value.trim(),
     admin_email: document.getElementById('smtp-admin').value.trim(),
     base_url:    document.getElementById('smtp-base-url').value.trim(),
+    portal_url:  document.getElementById('smtp-portal-url').value.trim(),
     use_tls:     enc === 'tls'  ? 'true' : 'false',
     use_ssl:     enc === 'ssl'  ? 'true' : 'false',
   };
@@ -410,7 +417,7 @@ async function clearSmtp() {
   if (data.ok) {
     showFlash('success', data.message);
     // Clear all fields
-    ['smtp-host','smtp-user','smtp-password','smtp-from','smtp-admin','smtp-base-url'].forEach(
+    ['smtp-host','smtp-user','smtp-password','smtp-from','smtp-admin','smtp-base-url','smtp-portal-url'].forEach(
       id => document.getElementById(id).value = ''
     );
     document.getElementById('smtp-port').value = '587';

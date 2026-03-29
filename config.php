@@ -42,5 +42,10 @@ define('SESSION_TIMEOUT', 1800);
 // to create new admins.
 define('ALLOW_ADMIN_PROMOTION', true);
 
+// URL to redirect to after logout.
+// Use a relative path (e.g. '/landing.php') to stay on this server,
+// or a full URL (e.g. 'https://myapp.com') to redirect elsewhere.
+define('LOGOUT_REDIRECT_URL', '/login.php');
+
 // Timezone for displaying dates
 date_default_timezone_set('UTC');

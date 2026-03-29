@@ -27,5 +27,5 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/auth.php';
 auth_logout();
-header('Location: /landing.php');
+header('Location: ' . LOGOUT_REDIRECT_URL);
 exit;
