@@ -179,15 +179,9 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div class="form-group">
-          <label for="smtp-base-url">API Base URL <span class="label-hint">used in admin email links</span></label>
+          <label for="smtp-base-url">API Base URL <span class="label-hint">used in email links</span></label>
           <input type="url" id="smtp-base-url" placeholder="https://api.example.com"
                  value="<?= htmlspecialchars($cfg['base_url'] ?? 'http://localhost:5000') ?>">
-        </div>
-
-        <div class="form-group">
-          <label for="smtp-portal-url">Portal URL <span class="label-hint">used in verification email links — defaults to API Base URL if blank</span></label>
-          <input type="url" id="smtp-portal-url" placeholder="https://admin.example.com"
-                 value="<?= htmlspecialchars($cfg['portal_url'] ?? '') ?>">
         </div>
 
         <!-- TLS / SSL toggles -->
@@ -290,7 +284,7 @@ require_once __DIR__ . '/includes/header.php';
                 <td style="font-size:12px; color:var(--ink-light);"><?= $enc ?></td>
               </tr>
               <tr>
-                <td colspan="4" style="font-size:11.5px; color:var(--ink-faint); padding-top:0; padding-bottom:10px;">
+                <td colspan="4" style="font-size:11.5px; color:var(--ink-light); padding-top:0; padding-bottom:10px;">
                   <?= $note ?>
                 </td>
               </tr>
@@ -314,7 +308,6 @@ function getFormValues() {
     from_addr:   document.getElementById('smtp-from').value.trim(),
     admin_email: document.getElementById('smtp-admin').value.trim(),
     base_url:    document.getElementById('smtp-base-url').value.trim(),
-    portal_url:  document.getElementById('smtp-portal-url').value.trim(),
     use_tls:     enc === 'tls'  ? 'true' : 'false',
     use_ssl:     enc === 'ssl'  ? 'true' : 'false',
   };
@@ -417,7 +410,7 @@ async function clearSmtp() {
   if (data.ok) {
     showFlash('success', data.message);
     // Clear all fields
-    ['smtp-host','smtp-user','smtp-password','smtp-from','smtp-admin','smtp-base-url','smtp-portal-url'].forEach(
+    ['smtp-host','smtp-user','smtp-password','smtp-from','smtp-admin','smtp-base-url'].forEach(
       id => document.getElementById(id).value = ''
     );
     document.getElementById('smtp-port').value = '587';

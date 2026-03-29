@@ -147,7 +147,7 @@ require_once __DIR__ . '/includes/header.php';
         <?php else: ?>
           <?php foreach ($requests as $req): ?>
             <tr id="reg-row-<?= (int)$req['id'] ?>">
-              <td class="mono" style="color:var(--ink-faint)"><?= (int)$req['id'] ?></td>
+              <td class="mono" style="color:var(--ink-light)"><?= (int)$req['id'] ?></td>
               <td><strong><?= htmlspecialchars($req['domain'] ?? '—') ?></strong></td>
               <td>
                 <a href="mailto:<?= htmlspecialchars($req['contact_email'] ?? '') ?>">

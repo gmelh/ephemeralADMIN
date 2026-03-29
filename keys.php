@@ -91,17 +91,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
         exit;
     }
 
-    if ($action === 'set-admin' && defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION) {
-        $self_id = auth_user()['id'] ?? null;
-        if ((string)$self_id === (string)$key_id) {
-            echo json_encode(['ok' => false, 'error' => 'You cannot change admin access on your own key.']);
-            exit;
+    if ($action === 'set-type') {
+        $new_type = $input['key_type'] ?? '';
+        if (!in_array($new_type, ['domain', 'user'])) {
+            echo json_encode(['ok' => false, 'error' => "key_type must be 'domain' or 'user'"]); exit;
         }
-        $grant  = !empty($input['grant']);
+        $result = my_api_post("/admin/keys/{$key_id}/set-type", ['key_type' => $new_type]);
+        echo json_encode($result['ok']
+            ? ['ok' => true,  'message' => "Key type changed to '{$new_type}'.", 'key_type' => $new_type]
+            : ['ok' => false, 'error'   => extractApiError($result)]);
+        exit;
+    }
+
+    if ($action === 'set-admin' && defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION) {
+        $grant  = (bool)($input['admin'] ?? false);
         $result = my_api_post("/admin/keys/{$key_id}/set-admin", ['admin' => $grant]);
         echo json_encode($result['ok']
-            ? ['ok' => true, 'message' => $grant ? 'Admin access granted.' : 'Admin access revoked.', 'admin' => $grant]
-            : ['ok' => false, 'error' => extractApiError($result)]);
+            ? ['ok' => true,  'message' => $grant ? 'Admin access granted.' : 'Admin access revoked.', 'admin' => $grant]
+            : ['ok' => false, 'error'   => extractApiError($result)]);
         exit;
     }
 
@@ -195,9 +202,9 @@ require_once __DIR__ . '/includes/header.php';
                   <?= !empty($key['active']) ? 'active' : 'disabled' ?>
                 </span>
               </td>
-              <td class="mono" id="key-rpm-<?= (int)$key['id'] ?>"><?= $key['rate_per_minute'] ?? '<span style="color:var(--ink-faint)">—</span>' ?></td>
-              <td class="mono" id="key-rph-<?= (int)$key['id'] ?>"><?= $key['rate_per_hour']   ?? '<span style="color:var(--ink-faint)">—</span>' ?></td>
-              <td class="mono" id="key-rpd-<?= (int)$key['id'] ?>"><?= $key['rate_per_day']    ?? '<span style="color:var(--ink-faint)">—</span>' ?></td>
+              <td class="mono" id="key-rpm-<?= (int)$key['id'] ?>"><?= $key['rate_per_minute'] ?? '<span style="color:var(--ink-light)">—</span>' ?></td>
+              <td class="mono" id="key-rph-<?= (int)$key['id'] ?>"><?= $key['rate_per_hour']   ?? '<span style="color:var(--ink-light)">—</span>' ?></td>
+              <td class="mono" id="key-rpd-<?= (int)$key['id'] ?>"><?= $key['rate_per_day']    ?? '<span style="color:var(--ink-light)">—</span>' ?></td>
               <td>
                 <a href="/key-output.php?key_id=<?= (int)$key['id'] ?>"
                    class="btn btn--ghost btn--sm"
@@ -274,25 +281,33 @@ require_once __DIR__ . '/includes/header.php';
         </div>
       </div>
 
+      <!-- Key Type toggle -->
+      <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;">
+        <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px;">Key Type</p>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span id="key-type-badge"></span>
+          <button class="btn btn--ghost btn--sm" id="btn-set-type" onclick="setKeyType()"></button>
+        </div>
+      </div>
+
+      <?php if (defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION): ?>
+      <!-- Admin Access -->
+      <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;">
+        <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px;">Admin Access</p>
+        <div style="display:flex; gap:8px;" id="admin-actions"></div>
+      </div>
+      <?php endif; ?>
+
       <!-- Enable / Disable -->
       <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;">
         <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px;">Status</p>
         <div style="display:flex; gap:8px;" id="status-actions"></div>
       </div>
 
-      <?php if (defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION): ?>
-      <!-- Admin Access -->
-      <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;" id="admin-access-section">
-        <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:8px;">Admin Access</p>
-        <p style="font-size:13px;color:var(--ink-light);margin-bottom:12px;" id="admin-access-desc"></p>
-        <div style="display:flex; gap:8px;" id="admin-access-actions"></div>
-      </div>
-      <?php endif; ?>
-
       <p id="key-modal-error" style="color:var(--error);font-size:13px;margin-top:12px;display:none;"></p>
     </div>
     <div class="modal__footer">
-      <button class="btn btn--primary" onclick="saveKeyLimits()" id="btn-save-limits">Save Limits</button>
+      <button class="btn btn--primary" onclick="saveKeyLimits()" id="btn-save-limits">Save Settings</button>
       <button class="btn btn--ghost"   onclick="closeModal('keyModal')">Close</button>
       <span id="key-saving" style="font-size:13px;color:var(--ink-faint);display:none;margin-left:auto;">Saving…</span>
     </div>
@@ -300,8 +315,8 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <script>
-let currentKeyAdmin  = false;
-let currentKeyIsSelf = false;
+let currentKeyActive = true;
+let currentKeyType   = '';
 
 function openKeyModal(key) {
   document.getElementById('key-id').value                   = key.id;
@@ -315,7 +330,19 @@ function openKeyModal(key) {
   document.getElementById('key-modal-error').style.display  = 'none';
   document.getElementById('rotated-key-display').style.display = 'none';
 
+  currentKeyType   = key.key_type || '';
   currentKeyActive = !!key.active;
+  updateKeyTypeBadge(currentKeyType);
+
+  const adminDiv = document.getElementById('admin-actions');
+  if (adminDiv) {
+    if (key.admin) {
+      adminDiv.innerHTML = '<button class="btn btn--danger btn--sm" onclick="setAdmin(false)">Revoke Admin</button>';
+    } else {
+      adminDiv.innerHTML = '<button class="btn btn--danger btn--sm" onclick="setAdmin(true)">Grant Admin</button>';
+    }
+  }
+
   const statusDiv = document.getElementById('status-actions');
   if (currentKeyActive) {
     statusDiv.innerHTML = '<button class="btn btn--danger btn--sm" onclick="toggleKey(\'disable\')">Disable Key</button>';
@@ -323,65 +350,43 @@ function openKeyModal(key) {
     statusDiv.innerHTML = '<button class="btn btn--success btn--sm" onclick="toggleKey(\'enable\')">Enable Key</button>';
   }
 
-  // Admin access section
-  const adminSection = document.getElementById('admin-access-section');
-  if (adminSection) {
-    currentKeyAdmin  = !!key.admin;
-    currentKeyIsSelf = key.is_self ?? false;
-    renderAdminSection();
-  }
-
   document.getElementById('keyModal').classList.add('is-open');
 }
 
-function renderAdminSection() {
-  const desc    = document.getElementById('admin-access-desc');
-  const actions = document.getElementById('admin-access-actions');
-  if (!desc || !actions) return;
-
-  if (currentKeyIsSelf) {
-    desc.textContent    = 'You cannot change admin access on your own key.';
-    actions.innerHTML   = '';
-  } else if (currentKeyAdmin) {
-    desc.textContent    = 'This key has admin access. Revoking it will remove all administrative privileges immediately.';
-    actions.innerHTML   = '<button class="btn btn--danger btn--sm" onclick="toggleAdmin(false)">Revoke Admin Access</button>';
-  } else {
-    desc.textContent    = 'Granting admin access allows this key to manage all other keys, approve registrations, and access all admin-only endpoints.';
-    actions.innerHTML   = '<button class="btn btn--danger btn--sm" onclick="toggleAdmin(true)">Grant Admin Access</button>';
-  }
+function updateKeyTypeBadge(type) {
+  const other = type === 'domain' ? 'user' : 'domain';
+  document.getElementById('key-type-badge').innerHTML =
+    '<span class="badge badge--' + (type === 'domain' ? 'blue' : 'purple') + '">' + type + '</span>';
+  document.getElementById('btn-set-type').textContent = 'Switch to ' + other;
 }
 
-async function toggleAdmin(grant) {
-  const keyId = document.getElementById('key-id').value;
-  const errEl = document.getElementById('key-modal-error');
+async function setKeyType() {
+  const keyId   = document.getElementById('key-id').value;
+  const newType = currentKeyType === 'domain' ? 'user' : 'domain';
+  const errEl   = document.getElementById('key-modal-error');
   errEl.style.display = 'none';
 
-  const confirmMsg = grant
-    ? 'Grant admin access to this key? It will have full administrative privileges.'
-    : 'Revoke admin access? This key will no longer be able to manage the platform.';
-  if (!confirm(confirmMsg)) return;
+  if (!confirm('Change key type from \'' + currentKeyType + '\' to \'' + newType + '\'?')) return;
+
+  document.getElementById('btn-set-type').disabled = true;
 
   try {
     const res  = await fetch('/keys.php', {
-      method:  'POST',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      body:    JSON.stringify({ action: 'set-admin', key_id: parseInt(keyId), grant }),
+      body: JSON.stringify({ action: 'set-type', key_id: parseInt(keyId), key_type: newType }),
     });
     const data = await res.json();
     if (!data.status) data.status = res.status;
 
     if (data.ok) {
-      currentKeyAdmin = !!data.admin;
-      renderAdminSection();
-      // Update admin badge in table row if present
-      const titleCell = document.querySelector(`#key-row-${keyId} td:first-child`);
-      if (titleCell) {
-        const existing = titleCell.querySelector('.badge--warning');
-        if (currentKeyAdmin && !existing) {
-          titleCell.insertAdjacentHTML('beforeend', ' <span class="badge badge--warning" style="margin-left:6px;font-size:10px;">admin</span>');
-        } else if (!currentKeyAdmin && existing) {
-          existing.remove();
-        }
+      currentKeyType = newType;
+      updateKeyTypeBadge(newType);
+      // Update the type badge in the table row
+      const rowType = document.querySelector('#key-row-' + keyId + ' .badge');
+      if (rowType) {
+        rowType.className   = 'badge badge--' + (newType === 'domain' ? 'blue' : 'purple');
+        rowType.textContent = newType;
       }
       showFlash('success', data.message);
     } else {
@@ -391,6 +396,8 @@ async function toggleAdmin(grant) {
   } catch(e) {
     errEl.textContent   = 'Network error — please try again.';
     errEl.style.display = 'block';
+  } finally {
+    document.getElementById('btn-set-type').disabled = false;
   }
 }
 
@@ -476,6 +483,58 @@ async function toggleKey(action) {
     showFlash('success', data.message);
   } else {
     errEl.textContent   = apiError(data);
+    errEl.style.display = 'block';
+  }
+}
+
+async function setAdmin(grant) {
+  const keyId  = document.getElementById('key-id').value;
+  const errEl  = document.getElementById('key-modal-error');
+  errEl.style.display = 'none';
+
+  const action = grant ? 'grant' : 'revoke';
+  if (!confirm((grant ? 'Grant' : 'Revoke') + ' admin access for this key?')) return;
+
+  try {
+    const res  = await fetch('/keys.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ action: 'set-admin', key_id: parseInt(keyId), admin: grant }),
+    });
+    const data = await res.json();
+    if (!data.status) data.status = res.status;
+
+    if (data.ok) {
+      const adminDiv = document.getElementById('admin-actions');
+      if (adminDiv) {
+        if (grant) {
+          adminDiv.innerHTML = '<button class="btn btn--danger btn--sm" onclick="setAdmin(false)">Revoke Admin</button>';
+        } else {
+          adminDiv.innerHTML = '<button class="btn btn--danger btn--sm" onclick="setAdmin(true)">Grant Admin</button>';
+        }
+      }
+      // Update admin badge in table row
+      const row = document.getElementById('key-row-' + keyId);
+      if (row) {
+        const idCell   = row.querySelector('td:first-child');
+        const existing = idCell ? idCell.querySelector('.badge--warning') : null;
+        if (grant && !existing && idCell) {
+          const badge = document.createElement('span');
+          badge.className   = 'badge badge--warning';
+          badge.style.cssText = 'margin-left:6px;font-size:10px;';
+          badge.textContent = 'admin';
+          idCell.appendChild(badge);
+        } else if (!grant && existing) {
+          existing.remove();
+        }
+      }
+      showFlash('success', data.message);
+    } else {
+      errEl.textContent   = apiError(data);
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    errEl.textContent   = 'Network error — please try again.';
     errEl.style.display = 'block';
   }
 }

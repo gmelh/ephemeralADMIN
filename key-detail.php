@@ -39,6 +39,17 @@ if (!$key_id) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    if ($action === 'set-type') {
+        $new_type = $_POST['key_type'] ?? '';
+        if (in_array($new_type, ['domain', 'user'])) {
+            $result = my_api_post("/admin/keys/{$key_id}/set-type", ['key_type' => $new_type]);
+            flash_set($result['ok'] ? 'success' : 'error',
+                $result['ok'] ? "Key type changed to '{$new_type}'." : ($result['data']['error'] ?? 'Update failed.'));
+        } else {
+            flash_set('error', 'Invalid key type.');
+        }
+    }
+
     if ($action === 'set-limits') {
         $rpm = strlen($_POST['rpm'] ?? '') ? (int)$_POST['rpm'] : null;
         $rph = strlen($_POST['rph'] ?? '') ? (int)$_POST['rph'] : null;
@@ -74,21 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             flash_set('success', 'Key rotated successfully.' . ($new_key ? ' New key shown below.' : ''));
         } else {
             flash_set('error', $result['data']['error'] ?? 'Rotation failed.');
-        }
-    }
-
-    if ($action === 'set-admin' && defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION) {
-        // Prevent removing admin from your own key
-        $self_id = auth_user()['id'] ?? null;
-        if ((string)$self_id === (string)$key_id) {
-            flash_set('error', 'You cannot change admin access on your own key.');
-        } else {
-            $grant  = isset($_POST['grant']);
-            $result = my_api_post("/admin/keys/{$key_id}/set-admin", ['admin' => $grant]);
-            flash_set($result['ok'] ? 'success' : 'error',
-                $result['ok']
-                    ? ($grant ? 'Admin access granted.' : 'Admin access revoked.')
-                    : ($result['data']['error'] ?? 'Action failed.'));
         }
     }
 
@@ -152,6 +148,26 @@ require_once __DIR__ . '/includes/header.php';
 
     <!-- Dangerous actions -->
     <div>
+      <!-- Key Type -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card__head"><span class="card__title">Key Type</span></div>
+        <div class="card__body">
+          <p style="font-size:13px; color:var(--ink-light); margin-bottom:14px;">
+            Current type: <strong><?= htmlspecialchars($key['key_type'] ?? '—') ?></strong>.
+            Switching type changes how the key is classified and which class-level rate limits apply.
+          </p>
+          <?php $other_type = ($key['key_type'] ?? '') === 'domain' ? 'user' : 'domain'; ?>
+          <form method="POST">
+            <input type="hidden" name="action"   value="set-type">
+            <input type="hidden" name="key_type" value="<?= htmlspecialchars($other_type) ?>">
+            <button type="submit" class="btn btn--ghost"
+                    onclick="return confirm('Change this key from \'<?= htmlspecialchars($key['key_type'] ?? '') ?>\' to \'<?= htmlspecialchars($other_type) ?>\'?')">
+              Switch to <?= htmlspecialchars($other_type) ?>
+            </button>
+          </form>
+        </div>
+      </div>
+
       <div class="card" style="margin-bottom:16px;">
         <div class="card__head"><span class="card__title">Rotate Key</span></div>
         <div class="card__body">
@@ -168,45 +184,6 @@ require_once __DIR__ . '/includes/header.php';
           </form>
         </div>
       </div>
-
-      <?php if (defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION): ?>
-        <?php $is_self = (string)(auth_user()['id'] ?? '') === (string)$key_id; ?>
-        <div class="card" style="margin-bottom:16px;">
-          <div class="card__head"><span class="card__title">Admin Access</span></div>
-          <div class="card__body">
-            <?php if ($is_self): ?>
-              <p style="font-size:13px; color:var(--ink-light);">
-                You cannot change admin access on your own key.
-              </p>
-            <?php elseif (!empty($key['admin'])): ?>
-              <p style="font-size:13px; color:var(--ink-light); margin-bottom:14px;">
-                This key has admin access. Revoking it will remove all administrative
-                privileges immediately.
-              </p>
-              <form method="POST">
-                <input type="hidden" name="action" value="set-admin">
-                <button type="submit" class="btn btn--danger"
-                        data-confirm="Revoke admin access from '<?= htmlspecialchars($key['identifier'] ?? '') ?>'?">
-                  Revoke Admin Access
-                </button>
-              </form>
-            <?php else: ?>
-              <p style="font-size:13px; color:var(--ink-light); margin-bottom:14px;">
-                Granting admin access allows this key to manage all other keys,
-                approve registrations, and access all admin-only endpoints.
-              </p>
-              <form method="POST">
-                <input type="hidden" name="action" value="set-admin">
-                <input type="hidden" name="grant"  value="1">
-                <button type="submit" class="btn btn--danger"
-                        data-confirm="Grant admin access to '<?= htmlspecialchars($key['identifier'] ?? '') ?>'?">
-                  Grant Admin Access
-                </button>
-              </form>
-            <?php endif; ?>
-          </div>
-        </div>
-      <?php endif; ?>
 
       <div class="card">
         <div class="card__head"><span class="card__title">Enable / Disable</span></div>

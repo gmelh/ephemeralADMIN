@@ -156,7 +156,7 @@ require_once __DIR__ . '/includes/header.php';
 
           <div class="form-actions">
             <button type="submit" class="btn btn--primary">Submit Request</button>
-            <span style="font-size:13px; color:var(--ink-faint);">
+            <span style="font-size:13px; color:var(--ink-light);">
               Requests are reviewed within 1–2 business days.
             </span>
           </div>

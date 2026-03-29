@@ -79,6 +79,31 @@ function auth_check(): bool
         return false;
     }
 
+    // Refresh user data from the API on every request so that role/admin
+    // changes (e.g. admin promotion, key disable) take effect immediately
+    // without requiring a re-login. The /me call is lightweight and local.
+    $url = API_BASE . '/me';
+    $ch  = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json', 'X-API-Key: ' . ($_SESSION['api_key'] ?? '')],
+        CURLOPT_TIMEOUT        => 4,
+    ]);
+    $raw    = curl_exec($ch);
+    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($status === 200) {
+        $data = json_decode($raw, true);
+        if ($data && !empty($data['identifier'])) {
+            $_SESSION['user'] = $data;
+        }
+    } elseif ($status === 401 || $status === 403) {
+        // Key has been disabled or deleted — force logout
+        auth_logout();
+        return false;
+    }
+
     $_SESSION['login_time'] = time(); // rolling timeout
     return true;
 }

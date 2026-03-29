@@ -418,6 +418,20 @@ function _endpoint_list(): array {
         ],
         [
             'group'       => 'Astronomical Events',
+            'path'        => '/eclipses',
+            'method'      => 'POST',
+            'label'       => 'Eclipses',
+            'desc'        => 'Find solar and lunar eclipses within a time window. Returns type, disc obscuration, magnitude, and Saros series data for each eclipse.',
+            'auth'        => true,
+            'path_params' => [],
+            'params'      => [],
+            'body'        => [
+                'reference_date' => '2026-03-29',
+                'years_ahead'    => 5,
+            ],
+        ],
+        [
+            'group'       => 'Astronomical Events',
             'path'        => '/ephemeris',
             'method'      => 'POST',
             'label'       => 'Ephemeris',

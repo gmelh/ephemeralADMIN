@@ -151,7 +151,7 @@ require_once __DIR__ . '/includes/header.php';
     </div>
     <div class="modal__body">
       <input type="hidden" id="modal-key-type">
-      <div id="modal-loading" style="text-align:center; padding:24px; color:var(--ink-faint);">Loading…</div>
+      <div id="modal-loading" style="text-align:center; padding:24px; color:var(--ink-light);">Loading…</div>
       <div id="modal-form" style="display:none;">
         <div class="form-grid" style="gap:16px;">
           <div class="form-group">

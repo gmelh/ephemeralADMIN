@@ -172,7 +172,7 @@ require_once __DIR__ . '/includes/header.php';
   Leave fields at their defaults unless you need a specific change.
 </div>
 
-<div id="config-loading" style="text-align:center; padding:40px; color:var(--ink-faint);">Loading…</div>
+<div id="config-loading" style="text-align:center; padding:40px; color:var(--ink-light);">Loading…</div>
 
 <div id="config-form" style="display:none;">
   <form id="output-form">
@@ -446,7 +446,7 @@ require_once __DIR__ . '/includes/header.php';
 
 .cfg-hint {
   font-size: 12px;
-  color: var(--ink-faint);
+  color: var(--ink-light);
 }
 
 /* Toggle switch */

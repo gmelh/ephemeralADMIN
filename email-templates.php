@@ -38,22 +38,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
     $action = $input['action'] ?? 'save';
     $name   = preg_replace('/[^a-z0-9_-]/', '', $input['name'] ?? 'test');
 
+    $all_template_names = ['test', 'register-domain', 'register-approved', 'register-rejected', 'user-verify', 'key-rotated'];
+
     if ($action === 'save') {
-        $width = max(320, min(800, (int)($input['content_width'] ?? 600)));
-        $result = my_api_post("/admin/email-templates/{$name}", [
-            'bg_color'      => $input['bg_color']     ?? '#f4f4f4',
+        $width       = max(320, min(800, (int)($input['content_width'] ?? 600)));
+        $header_align = in_array($input['header_align'] ?? '', ['left','center','right'])
+            ? $input['header_align'] : 'left';
+
+        $appearance = [
+            'bg_color'      => $input['bg_color']    ?? '#f4f4f4',
             'panel_color'   => $input['panel_color']  ?? '#ffffff',
-            'text_color'    => $input['text_color']    ?? '#1a1a1a',
+            'text_color'    => $input['text_color']   ?? '#1a1a1a',
             'content_width' => $width,
-            'header_align'  => in_array($input['header_align'] ?? '', ['left','center','right']) ? $input['header_align'] : 'left',
-            'subject'       => trim($input['subject']      ?? '') ?: null,
-            'header_text'   => trim($input['header_text']  ?? '') ?: null,
-            'body_text'     => trim($input['body_text']    ?? '') ?: null,
-            'footer_text'   => trim($input['footer_text']  ?? '') ?: null,
-        ]);
-        echo json_encode($result['ok']
-            ? ['ok' => true,  'message' => 'Template saved.']
-            : ['ok' => false, 'error'   => extractApiError($result)]);
+            'header_align'  => $header_align,
+        ];
+
+        // Save this template (appearance + content)
+        $result = my_api_post("/admin/email-templates/{$name}", array_merge($appearance, [
+            'subject'     => trim($input['subject']     ?? '') ?: null,
+            'header_text' => trim($input['header_text'] ?? '') ?: null,
+            'body_text'   => trim($input['body_text']   ?? '') ?: null,
+            'footer_text' => trim($input['footer_text'] ?? '') ?: null,
+        ]));
+
+        if (!$result['ok']) {
+            echo json_encode(['ok' => false, 'error' => extractApiError($result)]);
+            exit;
+        }
+
+        // If the test template was saved, propagate its appearance to all other templates
+        // (content fields are left untouched on those templates)
+        if ($name === 'test') {
+            foreach ($all_template_names as $other) {
+                if ($other === 'test') continue;
+                my_api_post("/admin/email-templates/{$other}", $appearance);
+            }
+            echo json_encode(['ok' => true, 'message' => 'Test template saved. Appearance applied to all templates.']);
+        } else {
+            echo json_encode(['ok' => true, 'message' => 'Template saved.']);
+        }
         exit;
     }
 
@@ -162,10 +185,13 @@ if (!array_key_exists($template_name, $templates_meta)) $template_name = 'test';
 $meta     = $templates_meta[$template_name];
 $defaults = array_merge($style_defaults, $meta['defaults']);
 
-// Fetch saved template — fall back to defaults gracefully if endpoint not yet live
+// Fetch saved template — falls back to defaults if API call fails
 $result   = my_api_get("/admin/email-templates/{$template_name}");
-$template = $result['ok'] ? array_merge($defaults, $result['data']['template'] ?? []) : $defaults;
 $api_ok   = $result['ok'];
+$api_error = $api_ok ? '' : extractApiError($result);
+// API returns the template fields flat — merge onto PHP-side defaults so
+// fields not yet stored in DB still have sensible values
+$template = $api_ok ? array_merge($defaults, $result['data'] ?? []) : $defaults;
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -180,9 +206,10 @@ require_once __DIR__ . '/includes/header.php';
 
 <?php if (!$api_ok): ?>
   <div class="alert alert--warning" style="max-width:820px; margin-bottom:24px;">
-    Could not load saved template from the API — showing defaults. Changes can still be saved once
-    the <code>email_templates</code> table and <code>/admin/email-templates</code> endpoints are added
-    to ephemeralREST. See the database note below.
+    Could not load saved template — showing defaults.
+    <?php if ($api_error): ?>
+      API error: <strong><?= htmlspecialchars($api_error) ?></strong>
+    <?php endif; ?>
   </div>
 <?php endif; ?>
 
