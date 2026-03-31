@@ -385,45 +385,8 @@ require_once __DIR__ . '/includes/header.php';
         <!-- Email preview iframe -->
         <iframe id="email-preview"
                 style="width:100%; border:none; display:block; height:360px;"
-                sandbox="allow-same-origin"></iframe>
+                sandbox="allow-scripts"></iframe>
 
-      </div>
-    </div>
-
-    <!-- Database note -->
-    <div class="card" style="margin-top:16px;">
-      <div class="card__head"><span class="card__title">Database &amp; API Setup</span></div>
-      <div class="card__body">
-        <p style="font-size:13px; color:var(--ink-light); margin-bottom:14px;">
-          Add the following to <strong>ephemeralREST</strong> to activate this page:
-        </p>
-        <div style="background:var(--bg-alt); border:1px solid var(--border); border-radius:6px;
-                    padding:14px 16px; font-family:var(--font-mono); font-size:12px;
-                    color:var(--ink-light); line-height:1.8; overflow-x:auto;">
-<pre style="margin:0; white-space:pre-wrap;">-- Migration: email_templates table
-CREATE TABLE IF NOT EXISTS email_templates (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  name          VARCHAR(64) UNIQUE NOT NULL,
-  bg_color      VARCHAR(16)  NOT NULL DEFAULT '#f4f4f4',
-  panel_color   VARCHAR(16)  NOT NULL DEFAULT '#ffffff',
-  text_color    VARCHAR(16)  NOT NULL DEFAULT '#1a1a1a',
-  content_width INTEGER      NOT NULL DEFAULT 600,
-  header_align  VARCHAR(8)   NOT NULL DEFAULT 'left',
-  subject       TEXT,
-  header_text   TEXT,
-  body_text     TEXT,
-  footer_text   TEXT,
-  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Template names: test, register-domain, register-approved,
---                 register-rejected, user-verify, key-rotated
-
--- Endpoints to add to ephemeralREST:
--- GET  /admin/email-templates/{name}
--- POST /admin/email-templates/{name}
--- POST /admin/email-templates/{name}/reset</pre>
-        </div>
       </div>
     </div>
 
@@ -511,7 +474,7 @@ CREATE TABLE IF NOT EXISTS email_templates (
 <script>
 // ── Template name for this page ──
 const TEMPLATE_NAME = '<?= $template_name ?>';
-let previewReady = false;
+let previewSubject = document.getElementById('preview-subject');
 
 // ── Sync colour picker ↔ text inputs ──
 function bindColor(pickerId, textId) {
@@ -640,6 +603,7 @@ function buildPreviewHtml() {
     </div>
     <div class="email-footer">${footer}</div>
   </div>
+<script>window.addEventListener('load',function(){parent.postMessage({type:'previewHeight',height:document.documentElement.scrollHeight},'*');});<\/script>
 </body>
 </html>`;
 }
@@ -751,83 +715,20 @@ function showFlash(type, message) {
 }
 
 // ── Initial render ──
+// ── Preview: always rebuild srcdoc — no contentDocument access needed ──
 function updatePreview() {
   const iframe = document.getElementById('email-preview');
-
-  if (!previewReady) {
-    // First load — set srcdoc and wait
-    iframe.style.height = '360px';
-    iframe.srcdoc = buildPreviewHtml();
-    iframe.onload = () => {
-      previewReady = true;
-      resizePreview(iframe);
-    };
-  } else {
-    // Subsequent updates — patch DOM directly, no reload
-    applyPreview(iframe.contentDocument);
-    resizePreview(iframe);
-  }
+  iframe.srcdoc = buildPreviewHtml();
 }
 
-function resizePreview(iframe) {
-  try {
-    const h = iframe.contentDocument.documentElement.scrollHeight;
-    if (h > 360) iframe.style.height = h + 'px';
-    else iframe.style.height = '360px';
-  } catch(e) {}
-}
-
-function applyPreview(doc) {
-  const bg      = document.getElementById('bg-text').value    || '#f4f4f4';
-  const panel   = document.getElementById('panel-text').value || '#ffffff';
-  const textCol = document.getElementById('text-text').value  || '#1a1a1a';
-  const width   = parseInt(widthRange.value) || 600;
-  const align   = document.querySelector('input[name="header-align"]:checked')?.value || 'left';
-  const header  = document.getElementById('header-text').value || 'ephemeralREST';
-  const rawBody = document.getElementById('body-text').value  ||
-    "This is a test email from ephemeralREST.\n\nYour SMTP configuration is working correctly. You can safely discard this message.";
-  const footer  = document.getElementById('footer-text').value ||
-    'You are receiving this email because you registered with ephemeralREST.';
-
-  doc.body.style.background = bg;
-
-  const content = doc.querySelector('.content');
-  if (content) {
-    content.style.maxWidth  = width + 'px';
-    content.style.background = panel;
+// Receive height reports from the sandboxed iframe via postMessage
+window.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'previewHeight') {
+    const iframe = document.getElementById('email-preview');
+    iframe.style.height = Math.max(360, e.data.height) + 'px';
   }
+});
 
-  const emailHeader = doc.querySelector('.email-header');
-  if (emailHeader) {
-    emailHeader.style.background   = panel;
-    emailHeader.style.textAlign    = align;
-    emailHeader.style.borderBottom = '1px solid rgba(128,128,128,0.2)';
-  }
-
-  const headerName = doc.querySelector('.email-header__name');
-  if (headerName) {
-    headerName.textContent = header;
-    headerName.style.color = textCol;
-  }
-
-  const emailBody = doc.querySelector('.email-body');
-  if (emailBody) {
-    emailBody.style.background = panel;
-    emailBody.style.color      = textCol;
-    emailBody.innerHTML = rawBody
-      .split(/\n\n+/)
-      .map(p => `<p>${escHtml(p.replace(/\n/g, '<br>'))}</p>`)
-      .join('');
-  }
-
-  const emailFooter = doc.querySelector('.email-footer');
-  if (emailFooter) {
-    emailFooter.textContent    = footer;
-    emailFooter.style.background = panel;
-    emailFooter.style.color    = textCol;
-    emailFooter.style.borderTop = '1px solid rgba(128,128,128,0.2)';
-  }
-}
 updatePreview();
 </script>
 

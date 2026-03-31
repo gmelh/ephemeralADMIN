@@ -6,7 +6,7 @@ This guide covers everything you can do in the ephemeralADMIN portal — for adm
 
 ## Overview
 
-The portal has three access levels, each with its own set of pages. Which portal you land on depends on your API key type.
+The portal has three access levels based on key type.
 
 | Key Type | Access Level | Landing Page |
 |----------|-------------|--------------|
@@ -14,137 +14,146 @@ The portal has three access levels, each with its own set of pages. Which portal
 | Domain key | Manage your own domain key | Domain Portal |
 | User key | Manage your own personal key | User Portal |
 
+Admin access can be granted to any key type (domain or user) — it is not limited to domain keys.
+
 ---
 
 ## Signing In
 
-The portal uses your API key as your login credential. There is no separate username and password.
+Your API key is your login credential. There is no separate username and password.
 
 1. Open the portal URL in your browser
-2. Click **Sign In** (top right of the landing page) or navigate directly to `/login.php`
-3. Paste your API key into the field and click **Sign In →**
-4. You will be redirected to the portal appropriate for your key type
+2. Click **Sign In** or navigate to `/login.php`
+3. Paste your API key and click **Sign In →**
+4. You are redirected to the portal appropriate for your key type
 
-Your session stays active for 30 minutes of inactivity. After that you will need to sign in again.
-
-If you see "Your key doesn't have permission to access that area", your key type does not match the page you are trying to reach. Use the link appropriate for your key type.
+Sessions expire after 30 minutes of inactivity (configurable by the administrator). Your session is refreshed on every page load, so the timeout only applies if you stop using the portal entirely.
 
 ---
 
 ## Registering a Key
 
-If you do not yet have an API key, you can request one from the landing page or the registration pages.
-
 ### Domain Key
 
-A domain key is intended for server-to-server use — a web application, service, or backend making API calls on behalf of your platform.
+For server-to-server use — a web application, service, or backend.
 
-1. Navigate to **Register a Domain** (`/register-domain.php`)
-2. Enter your domain name (e.g. `myapp.com`), your contact name, and your email address
-3. Add a brief description of your intended use (optional but recommended)
+1. Navigate to `/register-domain.php`
+2. Enter your domain, contact name, and email address
+3. Optionally add a reason for the request
 4. Click **Submit Request**
 
-A confirmation email is sent immediately. Your request is reviewed by an administrator, typically within 1–2 business days. Once approved, your API key is emailed to you. The key is shown only once — store it securely immediately.
+A confirmation email is sent immediately. Requests are reviewed by an administrator. On approval, your API key is emailed to you — it is shown only once. Store it immediately.
 
-**Wildcard domain:** If you do not have a domain (personal use, desktop application, direct access), enter `*` as the domain. A lower rate limit class applies automatically.
+**Wildcard domain:** Enter `*` as the domain for personal use or desktop applications. A lower rate limit class applies automatically.
 
 ### User Key
 
-A user key is tied to your email address and is intended for personal or desktop access.
+For personal or direct access, tied to your email address.
 
-1. Navigate to **Register as a User** (`/register-user.php`)
+1. Navigate to `/register-user.php`
 2. Enter your name and email address
 3. Click **Send Verification Email**
-4. Click the verification link in the email you receive
-5. Your API key is displayed once on the verification page — copy it and store it securely
+4. Click the verification link in the email
+5. The verification page confirms success and your API key is emailed separately
 
-User keys are issued immediately on verification without admin approval.
+User keys are issued immediately on verification — no admin approval required. Your API key is delivered by email only and is not shown in the browser.
 
 ---
 
 ## Domain Key Portal
 
-After signing in with a domain key, you land on the Domain Portal. From here you can view your key details, check your registration status, rotate your key, and configure output options.
+After signing in with a domain key, you land on the Domain Portal.
 
 ### Key Details
 
-The Key Details card shows your domain, key type, current status (active or disabled), and your rate limits (requests per minute, per hour, and per day). These limits are set by the administrator and cannot be changed by the key holder.
+Shows your domain, key type, status (active or disabled), and rate limits (per minute, per hour, per day). Rate limits are set by the administrator.
 
 ### Registration Status
 
-If a registration request was submitted for your domain, its current status (pending, approved, or rejected) is shown here, along with any note left by the administrator.
+Shows the status of your domain registration request (pending, approved, or rejected) and any note from the administrator.
 
 ### Rotating Your Key
 
-Rotating generates a new API key and immediately invalidates the old one. Use this if your key has been compromised or as a routine security practice.
+Rotating generates a new API key and immediately invalidates the old one.
 
 1. Click **Rotate My Key**
-2. Confirm the action in the prompt — the current key stops working immediately
-3. Your new key is displayed once on this page — copy it immediately
+2. Confirm in the prompt — the current key stops working immediately
+3. Your new key is emailed to your registered address
 4. Update your application or service with the new key
-
-There is no way to recover the new key after you leave this page. If you lose it, you will need to rotate again.
 
 ### Output Configuration
 
-The output configuration lets you override the server's default response fields for your key. This is useful if your application only needs a subset of the data returned by the API.
-
-1. Click **Output Config** (top right of the portal) or use the Output Configuration card
-2. Adjust the toggles for the coordinate systems, bodies, angles, and metadata you need
-3. Click **Save Configuration**
-
-Fields shown in gold are overriding the server default. Fields at their default value are inherited from the server. Click **Reset to Defaults** to remove all per-key overrides.
+Lets you override the server's default response fields for your key. Navigate to **Output Config** or use the Output Configuration card. Fields shown in gold are overriding the server default.
 
 ---
 
 ## User Key Portal
 
-After signing in with a personal user key, you land on the User Portal. The functionality is the same as the Domain Portal — key details, rotate, and output config — but the identity shown is your email address rather than a domain name.
+After signing in with a personal user key, you land on the User Portal. Functionality is the same as the Domain Portal — key details, rotate, and output configuration — with your email address shown as the identifier.
 
 ---
 
 ## Admin Portal
 
-Administrators have access to all portal pages. The sidebar shows the full navigation.
+Administrators have access to all portal pages via the full sidebar navigation.
 
 ### Dashboard
 
-The dashboard shows the health status of the connected ephemeralREST API, including whether it is reachable, its server time, and supported house systems. Cache statistics (chart count, place cache) are shown when available.
-
-A prominent button appears on the dashboard when there are pending registration requests waiting for review.
+Shows the health status of the connected ephemeralREST API, server time, supported house systems, and cache statistics. A prominent button appears when there are pending registration requests.
 
 ### Registrations
 
-The Registrations page lists all domain key requests. Use the tabs to filter by status: All, Pending, Approved, or Rejected.
+Lists all domain key requests. Filter by status using the tabs: All, Pending, Approved, Rejected.
 
-**Quick approve or reject:** Pending requests have Approve and Reject buttons directly in the table row. Clicking either submits immediately with no admin note.
+**Quick action:** Approve and Reject buttons appear directly in the table row for pending requests with no admin note.
 
-**Edit modal:** Click **Edit** on any request to open the detail modal. Here you can review the requester's domain, name, email, and reason for requesting. You can add an admin note — this text is included in the approval or rejection email sent to the registrant. Click **Approve** or **Reject** in the modal footer.
+**Edit modal:** Click **Edit** to open the detail modal, add an admin note, and approve or reject. The note is included in the email sent to the registrant.
 
-When a request is approved, ephemeralREST generates an API key, stores it, and emails it to the contact address. The key is not shown in the portal.
-
-When a request is rejected, the registrant receives an email with your admin note explaining the decision.
+When approved, ephemeralREST generates an API key and emails it to the contact address. The key is not shown in the portal.
 
 ### Keys
 
-The Keys page lists all API keys in the system. Use the type tabs (All, Domain, User) and the Show/Hide disabled toggle to filter the list.
+Lists all API keys. Filter by type (All, Domain, User) and toggle inactive key visibility.
 
-**Edit modal:** Click **Edit** on any key row to open the management modal. From here you can:
+**Edit modal:** Click **Edit** on any key row to open the management modal with the following sections (in order):
 
-- **Adjust rate limits** — set per-minute, per-hour, and per-day limits for this key individually. Leave blank to use the class default for the key type.
-- **Rotate the key** — generates a new key, immediately invalidates the old one, and displays the new key once in the modal. The new key is also emailed to the registrant.
-- **Enable or disable** — disabling a key immediately rejects all requests using it. The key record is preserved and can be re-enabled at any time.
-- **Grant or revoke admin access** — see the Admin Access section below.
+| Section | Description |
+|---------|-------------|
+| **Rate Limits** | Per-minute, per-hour, per-day limits for this key. Blank = use class default |
+| **Rotate Key** | Generate a new key; invalidates the old one immediately; new key emailed to registrant |
+| **Key Type** | Toggle between `domain` and `user`. Shows current type and a switch button |
+| **Admin Access** | Grant or revoke admin privileges (only shown when `ALLOW_ADMIN_PROMOTION` is enabled) |
+| **Status** | Enable or disable the key |
 
-Click **Output** in the table row (not the modal) to go to the full output configuration editor for that key.
+Click **Save Settings** to persist rate limit changes. Key type and admin/status changes take effect immediately via individual API calls within the modal.
 
-### Key Detail Page
+Click **Output** in the table row to open the full output configuration editor for that key.
 
-Click any key's identifier in the Keys table or navigate to `/key-detail.php?id={n}` for a dedicated page with the full set of management options for a single key. This page is useful for keys that need detailed attention — it shows all fields, a rotate section with a displayed new key, rate limit editing, output config editing, and the admin access section.
+### API Tester
+
+An interactive test console for all ephemeralREST endpoints. Available to all key holders (not just admins). Navigate to `/api-tester.php`.
+
+Endpoints are organised into tabs:
+
+| Tab | Endpoints |
+|-----|-----------|
+| **Health** | Health Check, Cache Stats, Autocomplete |
+| **Calculation** | Calculate, Recalculate, Get Chart, Secondary Progressions, Solar Arc, Solar Return, Lunar Return, List Derived Charts |
+| **Derived Charts** | Get Derived Chart, Delete Derived Chart |
+| **Astronomical Events** | Apsides, Next Apsides, Lunations, Eclipses, Ephemeris |
+| **Self-service** | My Identity, My Output Config, Update My Output Config |
+| **Utility** | Resolve Location |
+
+**Features:**
+- All authenticated calls use your signed-in key — shown in the auth indicator under the endpoint description
+- Path parameters (e.g. chart ID) appear as labelled input fields that update the URL display in real time
+- Query parameters (e.g. autocomplete search) support live debounce — Autocomplete auto-runs 500ms after you stop typing (minimum 3 characters)
+- POST endpoints have a pre-filled JSON body editor with live validation
+- Response panel shows status code, duration, headers, and pretty-printed JSON
 
 ### Class Limits
 
-Class limits are the default rate limits applied to each key type when no per-key override is set. There are three classes:
+Default rate limits applied to each key type when no per-key override is set.
 
 | Class | Applied to |
 |-------|-----------|
@@ -152,114 +161,105 @@ Class limits are the default rate limits applied to each key type when no per-ke
 | `user` | Email-based personal keys |
 | `wildcard` | Keys registered with `*` as the domain |
 
-Click **Edit** on any class row to open the edit modal. Enter the desired requests per minute, per hour, and per day, then click **Save Limits**. Changes take effect immediately for all keys of that class that do not have individual overrides.
-
-Individual key overrides always take precedence over class defaults.
+Click **Edit** on any class row to adjust limits. Individual key overrides always take precedence over class defaults.
 
 ### SMTP Settings
 
-SMTP settings control the outgoing mail server used for all transactional email. Until SMTP is configured, emails are logged by ephemeralREST but not delivered.
-
-**Connection Settings fields:**
+Controls the outgoing mail server for all transactional email.
 
 | Field | Description |
 |-------|-------------|
-| SMTP Host | Mail server hostname (e.g. `smtp.gmail.com`) |
-| Port | Usually 587 for STARTTLS, 465 for SSL/TLS |
-| Username | Your SMTP account username |
-| Password | Your SMTP password or app password. Leave blank to keep the existing password when saving |
-| From Email Address | The sender address shown in outgoing emails. Defaults to the username if left blank |
+| SMTP Host | Mail server hostname |
+| Port | 587 for STARTTLS, 465 for SSL/TLS |
+| Username | SMTP account username |
+| Password | SMTP password or app password. Leave blank to retain the existing password |
+| From Email Address | Sender address shown in outgoing emails |
 | Admin Email | Receives new registration notification emails |
-| API Base URL | Used in email links (verification URLs, etc.) — should be the public URL of your ephemeralREST instance |
-| Encryption | STARTTLS (recommended for port 587), SSL/TLS (port 465), or None |
+| API Base URL | Public URL of the ephemeralREST API — used in admin-facing email links |
+| Portal URL | Public URL of this admin portal — used in user verification email links. Must be set for `/verify.php` links to work correctly |
+| Encryption | STARTTLS (recommended for port 587) or SSL/TLS (port 465) |
 
-The **Common Provider Settings** panel on the right lists host and port details for popular mail services. Click any hostname to auto-fill the SMTP Host and Port fields.
+The **Common Provider Settings** panel lists pre-filled settings for popular mail services.
 
-Click **Save Settings** to store the configuration. Click **Send Test Email** to send a test message to any address and verify the settings are working. Settings must be saved before testing.
-
-Click **Clear** to remove all SMTP settings from the database. Email sending will stop until settings are reconfigured.
+Click **Save Settings**, then **Send Test Email** to verify. Settings must be saved before testing.
 
 ### Email Templates
 
-The Email Templates page lets you customise the appearance and content of all six transactional emails without modifying any code. Changes are stored in the database and take effect immediately for all subsequent emails of that type.
+Customise the appearance and content of all transactional emails without modifying code. Changes are stored in the database and take effect immediately.
 
 Use the tabs at the top to switch between templates:
 
 | Template | When it is sent |
 |----------|----------------|
 | Test Email | Sent manually from SMTP Settings |
-| Domain Registration | Sent immediately when a domain key request is submitted |
+| Domain Registration | Sent when a domain key request is submitted |
 | Registration Approved | Sent when an admin approves a request — contains the API key |
 | Registration Rejected | Sent when an admin rejects a request |
 | Email Verification | Sent when a user registers — contains the one-time verification link |
-| Key Rotated | Sent when any key is rotated |
+| Key Rotated | Sent when any key is rotated — contains the new API key |
 
-**Appearance settings** (shared visual style):
+**Appearance settings** control the visual style of the email panel:
 
-- **Background Colour** — the page background surrounding the email panel
-- **Panel Background** — the colour of the content card itself
-- **Text Colour** — applies to all text: header, body, and footer
-- **Content Width** — width of the panel in pixels (320–800). Use the slider or type a value
+- **Background Colour** — outer page background
+- **Panel Background** — content card background (including footer)
+- **Text Colour** — applies to all text
+- **Content Width** — panel width in pixels (320–800)
 
-**Content settings** (per-template text):
+> Saving the **Test Email** template propagates its appearance settings (colours and width) to all other templates automatically. Individual template saves update only that template's appearance.
 
-- **Subject Line** — the email subject shown in the recipient's inbox
-- **Header Text** — displayed prominently at the top of the email panel
+**Content settings** are per-template:
+
+- **Subject Line** — email subject in the inbox
+- **Header Text** — prominent text at the top of the panel
 - **Header Alignment** — Left, Centre, or Right
-- **Body Text** — the main message. Blank lines become paragraph breaks. Single line breaks within a paragraph become line breaks
+- **Body Text** — main message (blank lines = paragraph breaks)
 - **Footer Text** — small-print at the bottom
 
-**Substitution variables:** Templates that include dynamic content (domain name, API key, etc.) show a row of variable tags below the body text field. These tags represent values that ephemeralREST substitutes at send time. Include them in your body text exactly as shown, including the curly braces.
+**Substitution variables** are replaced by ephemeralREST at send time:
 
 | Variable | Value |
 |----------|-------|
 | `{name}` | Recipient's name |
 | `{domain}` | The registered domain |
 | `{api_key}` | The issued or rotated API key |
-| `{admin_note}` | Note entered by the admin when approving or rejecting |
-| `{verification_url}` | One-time email verification link |
+| `{admin_note}` | Note entered by the admin |
+| `{verify_url}` | One-time email verification link |
 | `{identifier}` | Domain or email address for the key |
 
-The **Live Preview** panel updates as you type, showing exactly how the email will appear. The mock email chrome at the top (From and Subject) also updates live.
+The **Live Preview** panel updates as you type. Click **Save Template** to save. Click **Reset** to revert to built-in defaults.
 
-Click **Save Template** to store your changes. Click **Reset** to revert the template to its built-in defaults.
+### Key Type
+
+From the Keys modal, the **Key Type** section shows the current type and provides a single **Switch to domain/user** button. This changes the key's classification and the rate limit class applied to it. A confirmation prompt appears before the change is made. The type badge in the keys table updates in-place.
 
 ### Admin Access
 
 When `ALLOW_ADMIN_PROMOTION` is enabled in `config.php`, you can grant or revoke admin access on any key other than your own.
 
-**Granting admin access** gives a key the ability to:
-- Access all admin-only API endpoints
-- Sign in to the admin portal
-- Manage all keys, registrations, class limits, SMTP settings, and email templates
+**Granting admin access** gives a key the ability to access all admin-only API endpoints and sign in to the admin portal with full management permissions.
 
-**Revoking admin access** removes these privileges immediately. The key continues to function as a regular domain or user key.
+**Revoking admin access** removes these privileges immediately. The last admin key cannot be revoked.
 
-To change admin access:
+To change admin access: open the **Edit** modal on the Keys page and find the **Admin Access** section. Grant and Revoke buttons both require confirmation. You cannot change your own admin status.
 
-- From the **Keys** page: click **Edit** on a key row, scroll to the Admin Access section in the modal
-- From the **Key Detail** page: find the Admin Access card in the right column
-
-Both Grant and Revoke buttons are shown in red as this is a consequential action. A confirmation prompt appears before any change is made. You cannot change admin access on your own key.
-
-To permanently disable the admin promotion feature, set `ALLOW_ADMIN_PROMOTION = false` in `config.php`. The Admin Access section will not appear anywhere in the portal.
+To permanently disable this feature, set `ALLOW_ADMIN_PROMOTION = false` in `config.php`.
 
 ---
 
 ## Output Configuration Reference
 
-The output configuration editor (accessible from the Domain Portal, User Portal, or any Key Detail page) controls which fields ephemeralREST includes in API responses for that key.
+The output configuration editor controls which fields ephemeralREST includes in responses for a key. Access it from the Domain Portal, User Portal, or the **Output** button on the Keys page.
 
-### Coordinate Systems and Fields
+### Coordinate Systems
 
 | Field | Description |
 |-------|-------------|
-| Geocentric | Geocentric ecliptic positions for all bodies |
-| Heliocentric | Heliocentric ecliptic positions for all planets |
-| Right Ascension | Equatorial right ascension in degrees |
-| Declination | Equatorial declination in degrees |
-| Longitude Speed | Daily motion in ecliptic longitude |
-| Latitude Speed | Daily motion in ecliptic latitude |
+| Geocentric | Geocentric ecliptic positions |
+| Heliocentric | Heliocentric ecliptic positions |
+| Right Ascension | Equatorial right ascension |
+| Declination | Equatorial declination |
+| Longitude Speed | Daily motion in longitude |
+| Latitude Speed | Daily motion in latitude |
 | Declination Speed | Daily motion in declination |
 | Retrograde Flag | Boolean retrograde indicator (geocentric only) |
 
@@ -267,43 +267,42 @@ The output configuration editor (accessible from the Domain Portal, User Portal,
 
 ASC, MC, Vertex, East Point, and ARMC can each be individually enabled or disabled.
 
-### Planets
+### Planets and Special Points
 
-Each of the ten standard planets plus Earth (heliocentric only) can be individually enabled or disabled.
-
-### Asteroids and Special Points
-
-The Asteroids toggle is a master switch — disabling it suppresses all asteroid output regardless of individual settings. Individual toggles are available for Ceres, Pallas, Juno, Vesta, Chiron, Mean Node, True Node, South Node, Mean Lilith, True Lilith, and Part of Fortune.
+Individual toggles for all ten standard planets, Earth (heliocentric), Ceres, Pallas, Juno, Vesta, Chiron, Mean Node, True Node, South Node, Mean Lilith, True Lilith, and Part of Fortune. The **Asteroids** toggle is a master switch.
 
 ### Response Metadata
 
-- **API Usage** — includes Google API request counts in `/calculate` responses
-- **From Cache** — includes a cache status flag in responses
+- **API Usage** — Google API request counts in `/calculate` responses
+- **From Cache** — cache status flag in responses
 
 ### Default House System
 
-Sets the house system used when a request does not specify one. If left at None, no house cusps are returned unless the request includes `house_system`.
+Sets the fallback house system when a request doesn't specify one. Leave at None to suppress house cusps unless the request includes `house_system`.
 
-Fields shown in **gold** are overriding the server default for this key. All other fields are inherited from the server defaults. Use **Reset to Defaults** to remove all per-key overrides and return to server behaviour.
+Fields shown in **gold** override the server default for this key. Click **Reset to Defaults** to remove all per-key overrides.
 
 ---
 
 ## Frequently Asked Questions
 
 **I lost my API key. How do I get a new one?**
-Sign in to the portal with your key. If you cannot sign in because you no longer have the key, contact your administrator. The administrator can rotate your key from the Keys page — a new key will be emailed to your registered address.
+Contact your administrator. They can rotate your key from the Keys page — a new key will be emailed to your registered address.
 
 **I need a higher rate limit.**
-Domain and user key rate limits are set by the administrator. Contact your administrator and explain your usage requirements. Administrators can set per-key limits above the class default from the Key Detail page.
+Rate limits are set by the administrator per key or per class. Contact your admin.
 
-**Can I register more than one domain key?**
-Yes. Submit a separate registration request for each domain. Each request is reviewed individually.
-
-**What is the difference between a domain key and a wildcard key?**
-A domain key is tied to a specific domain name and receives the full domain rate limit class. A wildcard key (domain entered as `*`) has no domain restriction and receives the lower wildcard rate limit class. Wildcards are intended for personal use, desktop applications, and local development.
+**Can I have more than one domain key?**
+Yes. Submit a separate registration request for each domain.
 
 **My key was disabled. What do I do?**
 Contact your administrator. Only an admin can re-enable a key.
 
-**How do I know what rate limits apply to my key?**
-Sign in to your portal. Rate limits are shown in the Account or Key Details card.
+**I received a verification email but the link isn't working.**
+The link may have expired (24 hours) or already been used. Register again at `/register-user.php`.
+
+**The API tester shows "Unauthorized".**
+Your key may have been rotated or disabled since you last signed in. Sign out and sign in again with your current key.
+
+**Key type was changed but rate limits didn't change.**
+Rate limits update to the new class defaults on the next API request. Per-key limit overrides are unaffected by type changes.

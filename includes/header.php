@@ -114,7 +114,7 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
             <?= $nav[$page]['label'] ?>
           </a>
         <?php endforeach; ?>
-      <?php else: ?>
+      <?php elseif ($current_user): ?>
         <div class="sidebar__section">My Account</div>
         <?php foreach ($nav as $page => $item): ?>
           <a href="/<?= $page ?>.php"
@@ -127,10 +127,12 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
     </nav>
 
     <div class="sidebar__footer">
+      <?php if ($current_user): ?>
       <a href="/logout.php" class="sidebar__signout"
          onclick="return confirm('Sign out?')">
         ⎋ &nbsp;Sign Out
       </a>
+      <?php endif; ?>
       <span class="sidebar__version">v<?= SITE_VERSION ?></span>
     </div>
   </aside>

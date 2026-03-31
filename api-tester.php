@@ -499,6 +499,55 @@ function _endpoint_list(): array {
                 'place_name' => 'Ulm, Germany',
             ],
         ],
+
+        // ── Views ─────────────────────────────────────────────────────────
+        [
+            'group'       => 'Views',
+            'path'        => '/views',
+            'method'      => 'POST',
+            'label'       => 'Save View',
+            'desc'        => 'Save a new opaque JSON blob. Always generates a fresh UUID. Returns the view_id.',
+            'auth'        => true,
+            'path_params' => [],
+            'params'      => [],
+            'body'        => [
+                'data' => new stdClass(),
+            ],
+        ],
+        [
+            'group'       => 'Views',
+            'path'        => '/views/{view_id}',
+            'method'      => 'PUT',
+            'label'       => 'Update View',
+            'desc'        => 'Update an existing view blob in place by UUID. Returns 404 if the view does not exist.',
+            'auth'        => true,
+            'path_params' => [
+                ['key' => 'view_id', 'label' => 'View UUID', 'placeholder' => 'e.g. a1b2c3d4-...', 'required' => true, 'type' => 'text'],
+            ],
+            'params'      => [],
+            'body'        => [
+                'data' => new stdClass(),
+            ],
+        ],
+        [
+            'group'       => 'Views',
+            'path'        => '/views',
+            'method'      => 'GET',
+            'label'       => 'Get View',
+            'desc'        => 'Retrieve a saved view by UUID. No authentication required.',
+            'auth'        => false,
+            'path_params' => [],
+            'params'      => [
+                [
+                    'key'         => 'v',
+                    'label'       => 'View UUID',
+                    'placeholder' => 'e.g. a1b2c3d4-...',
+                    'required'    => true,
+                    'type'        => 'text',
+                ],
+            ],
+            'body'        => null,
+        ],
     ];
 }
 

@@ -7,7 +7,7 @@ Administration portal for [ephemeralREST](https://github.com/gmelh/ephemeralREST
 ## Prerequisites
 
 - **ephemeralREST** running and reachable (default: `http://localhost:5000`)
-- **PHP 8.1** or later with the following extensions: `curl`, `session`, `json`, `mbstring`
+- **PHP 8.1** or later with extensions: `curl`, `session`, `json`, `mbstring`
 - A web server — **nginx** (recommended) or Apache
 - An admin API key for ephemeralREST (created via `key_manager.py`)
 
@@ -29,9 +29,10 @@ ephemeralADMIN/
 ├── landing.php
 ├── login.php
 ├── logout.php
+├── verify.php
+├── api-tester.php
 ├── class-limits.php
 ├── email-templates.php
-├── key-detail.php
 ├── key-output.php
 ├── keys.php
 ├── portal-admin.php
@@ -45,13 +46,13 @@ ephemeralADMIN/
 └── SETUP.md
 ```
 
+> **Note:** `key-detail.php` is no longer part of the active portal. All key management is handled via the modal on `keys.php`.
+
 ---
 
 ## Installation
 
 ### 1. Deploy the files
-
-Copy the ephemeralADMIN directory to your server. The portal is a flat PHP application with no Composer dependencies — no build step is required.
 
 ```bash
 cp -r ephemeralADMIN/ /var/www/ephemeral-admin/
@@ -60,14 +61,12 @@ chown -R www-data:www-data /var/www/ephemeral-admin/
 
 ### 2. Configure `config.php`
 
-Open `config.php` and set the following constants:
-
 ```php
 // URL of the running ephemeralREST instance
 define('API_BASE', 'http://localhost:5000');
 
 // Admin API key created via key_manager.py on the ephemeralREST side
-// This key is used for all admin-authenticated API calls made by the portal itself
+// Used for portal-level API calls (static admin operations)
 define('ADMIN_API_KEY', 'your-admin-api-key-here');
 
 // Display name shown in the portal UI and emails
@@ -80,28 +79,24 @@ define('SITE_VERSION', '1.0');
 define('SESSION_TIMEOUT', 1800);
 
 // Allow administrators to grant or revoke admin access on other keys via the portal.
-// Set to false once your admin keys are established and you want to lock this down.
+// Set to false once your admin keys are established.
 define('ALLOW_ADMIN_PROMOTION', true);
+
+// URL to redirect to after logout.
+// Use a relative path to stay on this server, or a full URL to redirect elsewhere.
+define('LOGOUT_REDIRECT_URL', '/landing.php');
 ```
 
-> **Security note:** `ADMIN_API_KEY` is the master admin key. Treat it like a root password.
-> Do not commit `config.php` to version control. Add it to `.gitignore`.
+> **Security note:** `ADMIN_API_KEY` is the master admin key. Do not commit `config.php` to version control. Add it to `.gitignore` and use a `config.example.php` template instead.
 
 ### 3. Configure the web server
 
 #### nginx
 
-Create a server block pointing to the ephemeralADMIN directory:
-
 ```nginx
 server {
     listen 80;
     server_name admin.yourdomain.com;
-
-    root /var/www/ephemeral-admin;
-    index index.php;
-
-    # Redirect HTTP to HTTPS (recommended)
     return 301 https://$host$request_uri;
 }
 
@@ -131,12 +126,6 @@ server {
 }
 ```
 
-Reload nginx after saving:
-
-```bash
-nginx -t && systemctl reload nginx
-```
-
 #### Apache
 
 ```apache
@@ -149,7 +138,6 @@ nginx -t && systemctl reload nginx
         Require all granted
     </Directory>
 
-    # Block direct access to includes
     <Directory /var/www/ephemeral-admin/includes>
         Require all denied
     </Directory>
@@ -162,42 +150,17 @@ nginx -t && systemctl reload nginx
 
 #### PHP built-in server (development only)
 
-For local development and testing, from the ephemeralADMIN directory:
-
 ```bash
 php -S localhost:8080
 ```
 
-Or to allow connections from other devices on your network:
-
-```bash
-php -S 0.0.0.0:8080
-```
-
-> Do not use the built-in server in production.
-
 ---
 
-## Database Migration
+## ephemeralREST Requirements
 
-The email template editor requires an `email_templates` table in the ephemeralREST database. Run the following migration on the ephemeralREST SQLite database:
+### Database migration
 
-```sql
-CREATE TABLE IF NOT EXISTS email_templates (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    name          VARCHAR(64) UNIQUE NOT NULL,
-    bg_color      VARCHAR(16)  NOT NULL DEFAULT '#f4f4f4',
-    panel_color   VARCHAR(16)  NOT NULL DEFAULT '#ffffff',
-    text_color    VARCHAR(16)  NOT NULL DEFAULT '#1a1a1a',
-    content_width INTEGER      NOT NULL DEFAULT 600,
-    header_align  VARCHAR(8)   NOT NULL DEFAULT 'left',
-    subject       TEXT,
-    header_text   TEXT,
-    body_text     TEXT,
-    footer_text   TEXT,
-    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+The `email_templates` table is created automatically when ephemeralREST starts (via `CREATE TABLE IF NOT EXISTS`). No manual migration is needed if you are running the current version of `database.py`.
 
 The six template names used by the portal are:
 
@@ -208,147 +171,153 @@ The six template names used by the portal are:
 | `register-approved` | Sent when a registration is approved |
 | `register-rejected` | Sent when a registration is rejected |
 | `user-verify` | Sent when a user registers (verification link) |
-| `key-rotated` | Sent when a key is rotated |
+| `key-rotated` | Sent when any key is rotated |
 
-If a template has no row in the database, ephemeralREST falls back to the hardcoded defaults defined in the API. You only need rows for templates you have customised.
+### Required API endpoints
 
----
+The following endpoints must be present in ephemeralREST. All require admin authentication via `X-API-Key` unless marked public.
 
-## ephemeralREST API Endpoints Required
-
-The following endpoints must be present in ephemeralREST for full portal functionality. All require admin authentication via `X-API-Key`.
-
-### Email Templates
-
+**Email templates**
 ```
 GET  /admin/email-templates/{name}
 POST /admin/email-templates/{name}
 POST /admin/email-templates/{name}/reset
 ```
 
-`GET` response shape:
-
-```json
-{
-  "template": {
-    "name": "test",
-    "bg_color": "#f4f4f4",
-    "panel_color": "#ffffff",
-    "text_color": "#1a1a1a",
-    "content_width": 600,
-    "header_align": "left",
-    "subject": "Test email from ephemeralREST",
-    "header_text": "ephemeralREST",
-    "body_text": "This is a test email...",
-    "footer_text": "You are receiving this email because..."
-  }
-}
-```
-
-### Admin Promotion
-
+**Admin promotion**
 ```
 POST /admin/keys/{id}/set-admin
 Body: { "admin": true | false }
 ```
 
-This endpoint should refuse to modify a key if it is the only admin key remaining, and should refuse if the requesting key is modifying itself.
-
----
-
-## Initial Admin Setup
-
-The portal does not create admin keys — that is done on the ephemeralREST side using `key_manager.py`.
-
-```bash
-# On the ephemeralREST server
-python key_manager.py create --admin --name "Your Name" --identifier admin@yourdomain.com
+**Key type toggle**
+```
+POST /admin/keys/{id}/set-type
+Body: { "key_type": "domain" | "user" }
 ```
 
-The key is printed to the terminal once. Store it securely — it is your login credential for the admin portal.
-
-To verify the key works before opening a browser:
-
-```bash
-curl -H "X-API-Key: your-key" http://localhost:5000/me
+**Email verification** (public)
+```
+GET /register/verify?t={token}
 ```
 
-You should receive a JSON response with `"admin": true`.
+**Eclipses** (authenticated)
+```
+POST /eclipses
+Body: { "reference_date": "YYYY-MM-DD", "years_ahead": 5 }
+```
 
 ---
 
 ## SMTP Configuration
 
-SMTP is configured through the portal UI rather than a config file, so that credentials are stored in the ephemeralREST database and do not need to be in any PHP file.
+SMTP settings are stored in the ephemeralREST database, not in config files. Configure them through the portal UI:
 
-1. Sign in to the admin portal
-2. Navigate to **SMTP Settings** in the sidebar
-3. Enter your mail server details and save
-4. Use **Send Test Email** to verify the configuration
+1. Sign in → **SMTP Settings** in the sidebar
+2. Fill in all connection fields
+3. Set **Portal URL** to the public URL of this admin portal (e.g. `https://admin.example.com`) — this is used for verification email links
+4. Save, then use **Send Test Email** to verify
 
-Until SMTP is configured, all transactional emails (registration confirmations, approvals, key delivery, verification links) are logged by ephemeralREST but not delivered.
+Until SMTP is configured, all transactional emails are logged but not delivered.
+
+### Portal URL
+
+The **Portal URL** field is distinct from **API Base URL**:
+
+| Field | Purpose |
+|-------|---------|
+| API Base URL | Public URL of the ephemeralREST API — used in admin notification links |
+| Portal URL | Public URL of this admin portal — used in user verification email links (`/verify.php?t=...`) |
+
+If Portal URL is left blank it falls back to API Base URL, which will cause verification links to 404.
 
 ---
 
-## Email Template Customisation
+## User Registration Flow
 
-The appearance and content of all six transactional emails can be customised without touching code.
+User keys (email-based) follow this flow:
 
-1. Sign in to the admin portal
-2. Navigate to **Email Templates** in the sidebar
-3. Select a template from the tabs
-4. Adjust colours, width, and text
-5. Use the live preview to check the result before saving
+1. User submits name + email on `/register-user.php`
+2. ephemeralREST creates an inactive key and sends a verification email to the address with a link to `{portal_url}/verify.php?t={token}`
+3. User clicks the link → `verify.php` calls `GET /register/verify?t={token}` on the API
+4. API activates the key, emails the plaintext key to the user, and returns JSON
+5. `verify.php` shows a success page: "Check your inbox for your API key"
 
-Templates support substitution variables (shown as `{variable}` tags in the body field for templates that use them). These are replaced by ephemeralREST at send time with the actual values for each recipient.
+The key is delivered by email only — it is never shown in the browser.
+
+---
+
+## Initial Admin Setup
+
+The portal does not create admin keys. Create one on the ephemeralREST server:
+
+```bash
+python key_manager.py create --admin --name "Your Name" --identifier admin@yourdomain.com
+```
+
+The key is printed to the terminal once. Verify it works:
+
+```bash
+curl -H "X-API-Key: your-key" http://localhost:5000/me
+# Should return { "admin": true, ... }
+```
+
+---
+
+## Session Behaviour
+
+The portal refreshes the authenticated user's data from `/me` on every page load. This means:
+
+- Admin privileges granted to a key take effect on the next page load — no re-login required
+- If a key is disabled by an admin, the session is terminated immediately on the next request
+- The session rolling timeout resets with each page load; idle sessions expire after `SESSION_TIMEOUT` seconds
 
 ---
 
 ## Verifying the Installation
 
-Once the web server is configured:
-
-1. Open the portal URL in a browser — you should see the ephemeralREST landing page
+1. Open the portal URL — you should see the landing page
 2. Click **Sign In** and enter your admin API key
-3. You should land on the **Dashboard** (portal-admin.php)
-4. The dashboard shows a green health indicator if the API at `API_BASE` is reachable
-5. Navigate to **SMTP Settings** and configure your mail server
-6. Send a test email to confirm end-to-end delivery
-
-If the health indicator is red, check that `API_BASE` in `config.php` is correct and that ephemeralREST is running.
+3. You should land on the **Dashboard**
+4. A green health indicator confirms the API is reachable
+5. Navigate to **SMTP Settings** → fill in and save → **Send Test Email**
 
 ---
 
 ## Security Recommendations
 
-- Serve the portal over HTTPS only — the API key is the only credential and must not travel in plaintext
-- Set a strong, unique value for `ADMIN_API_KEY` in `config.php`
-- Once your admin keys are established, set `ALLOW_ADMIN_PROMOTION = false` in `config.php` to prevent the portal from being used to create new admin keys
-- The `/includes/` directory should not be web-accessible (the nginx and Apache configs above both block it)
-- Consider restricting the admin portal to a VPN or internal network using firewall rules or nginx `allow`/`deny` directives
-- `config.php` must not be committed to version control — add it to `.gitignore` and use a template (`config.example.php`) instead
+- Serve over HTTPS only
+- Set `ALLOW_ADMIN_PROMOTION = false` in `config.php` once your admin keys are established
+- The `/includes/` directory must not be web-accessible
+- `config.php` must not be in version control
+- Consider restricting the portal to a VPN or internal network
 
 ---
 
 ## Troubleshooting
 
-**Portal shows a blank page or PHP error**
-Ensure PHP 8.1+ is installed and the `curl` and `session` extensions are enabled:
+**Blank page or PHP error**
 ```bash
 php -m | grep -E 'curl|session'
 ```
 
 **Dashboard shows API as unreachable**
-Check that `API_BASE` in `config.php` matches the address ephemeralREST is actually listening on, and that no firewall is blocking the connection between the web server process and the API.
+Check `API_BASE` in `config.php` matches the address ephemeralREST is listening on.
 
 **Login fails with a valid key**
-Confirm the key has not been disabled. On the ephemeralREST server:
 ```bash
 python key_manager.py show --identifier admin@yourdomain.com
 ```
+Check the key is active and has `admin: true`.
 
-**Emails are not being delivered**
-Navigate to SMTP Settings and use Send Test Email. Check the ephemeralREST log for any SMTP errors. Common issues: wrong port, TLS/SSL mismatch, app password required (Gmail, Outlook).
+**Verification emails link to the API instead of the portal**
+Set the **Portal URL** field in SMTP Settings to the public URL of this admin portal.
+
+**Emails not delivered**
+Use Send Test Email in SMTP Settings. Check ephemeralREST logs for SMTP errors. Common causes: wrong port, TLS/SSL mismatch, app password required.
 
 **Session expires too quickly**
-Increase `SESSION_TIMEOUT` in `config.php`. The value is in seconds; the default is 1800 (30 minutes).
+Increase `SESSION_TIMEOUT` in `config.php` (seconds; default 1800).
+
+**Key type changed but portal still shows old type**
+The portal refreshes user data on every page load. If you changed your own key type, sign out and back in to see the change reflected in your session.
