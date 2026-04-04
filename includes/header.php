@@ -72,8 +72,109 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css">
+  <style>
+    /* ── Mobile nav ─────────────────────────────────────── */
+    .mobile-bar {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 52px;
+      background: #1a1a18;
+      border-bottom: 1px solid #2e2e2c;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 200;
+    }
+
+    .mobile-bar__brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .mobile-bar__star { font-size: 18px; color: #c8a84b; }
+
+    .mobile-bar__name {
+      font-family: 'Instrument Serif', serif;
+      font-size: 17px;
+      color: #f0ede8;
+    }
+
+    .hamburger {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border-radius: 4px;
+      transition: background .15s;
+    }
+
+    .hamburger:hover { background: rgba(255,255,255,.07); }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #e4e1da;
+      border-radius: 2px;
+      transition: transform .25s, opacity .25s;
+      transform-origin: center;
+    }
+
+    .hamburger.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.is-open span:nth-child(2) { opacity: 0; }
+    .hamburger.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 149;
+      backdrop-filter: blur(1px);
+    }
+
+    @media (max-width: 800px) {
+      .mobile-bar { display: flex; }
+      .main { margin-left: 0; padding-top: 52px; }
+
+      /* Override style.css display:none so the drawer can slide in */
+      .sidebar {
+        display: flex !important;
+        position: fixed;
+        top: 0; left: 0;
+        height: 100dvh;
+        transform: translateX(-100%);
+        transition: transform .28s cubic-bezier(.4,0,.2,1);
+        z-index: 150;
+        box-shadow: 4px 0 24px rgba(0,0,0,.5);
+      }
+
+      .sidebar.is-open { transform: translateX(0); }
+      .sidebar-backdrop.is-open { display: block; }
+    }
+  </style>
 </head>
 <body>
+
+<!-- Mobile top bar -->
+<div class="mobile-bar">
+  <a href="/landing.php" class="mobile-bar__brand">
+    <span class="mobile-bar__star">✦</span>
+    <span class="mobile-bar__name"><?= SITE_NAME ?></span>
+  </a>
+  <button class="hamburger" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</div>
+
+<!-- Backdrop -->
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
 <div class="layout">
 
@@ -136,6 +237,41 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
       <span class="sidebar__version">v<?= SITE_VERSION ?></span>
     </div>
   </aside>
+
+  <script>
+    (function () {
+      var toggle   = document.getElementById('nav-toggle');
+      var sidebar  = document.querySelector('.sidebar');
+      var backdrop = document.getElementById('sidebar-backdrop');
+
+      function open() {
+        sidebar.classList.add('is-open');
+        backdrop.classList.add('is-open');
+        toggle.classList.add('is-open');
+        toggle.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function close() {
+        sidebar.classList.remove('is-open');
+        backdrop.classList.remove('is-open');
+        toggle.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
+
+      toggle.addEventListener('click', function () {
+        sidebar.classList.contains('is-open') ? close() : open();
+      });
+
+      backdrop.addEventListener('click', close);
+
+      // Close on nav link tap (single-page feel)
+      sidebar.querySelectorAll('.sidebar__link').forEach(function (link) {
+        link.addEventListener('click', close);
+      });
+    })();
+  </script>
 
   <!-- Main content -->
   <main class="main">

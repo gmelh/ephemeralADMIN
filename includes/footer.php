@@ -26,6 +26,22 @@
 -->
 
     </div><!-- /.main__inner -->
+
+    <footer class="portal-footer">
+      <div class="portal-footer__primary">
+        ephemeralREST &copy; <?= date('Y') ?>
+        <span class="portal-footer__sep">·</span>
+        <a href="https://github.com/gmelh/ephemeralREST" target="_blank" rel="noopener">Source on GitHub @ /gmelh</a>
+      </div>
+      <div class="portal-footer__secondary">
+        <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener">MIT</a> (portal)
+        <span class="portal-footer__sep">·</span>
+        <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL v3</a> (API)
+        <span class="portal-footer__sep">·</span>
+        Swiss Ephemeris licensing compatibility
+      </div>
+    </footer>
+
   </main><!-- /.main -->
 
 </div><!-- /.layout -->
@@ -61,16 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
-
-  <footer class="portal-footer">
-    <span>ephemeralREST &copy; <?= date('Y') ?></span>
-    <span class="portal-footer__sep">·</span>
-    <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL v3 Licensed</a>
-    <span class="portal-footer__sep">·</span>
-    <span>AGPL v3 licence maintained for compatibility with Swiss Ephemeris (Astrodienst AG)</span>
-    <span class="portal-footer__sep">·</span>
-    <a href="https://github.com/gmelh/ephemeralREST" target="_blank" rel="noopener">Source on GitHub</a>
-  </footer>
 
 </body>
 </html>

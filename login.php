@@ -115,6 +115,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       pointer-events: none;
     }
 
+    body::after {
+      content: '';
+      position: absolute;
+      width: 160vw;
+      height: 160vh;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(ellipse at center,
+        rgba(79, 143, 212, .55)  0%,
+        rgba(79, 143, 212, .28) 18%,
+        rgba(79, 143, 212, .08) 32%,
+        transparent             44%
+      );
+      pointer-events: none;
+    }
+
     .login-brand {
       display: flex;
       align-items: center;
