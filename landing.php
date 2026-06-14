@@ -1142,7 +1142,7 @@
   </div>
   <div class="footer__bottom">
     <span>AGPL v3 Licensed · Swiss Ephemeris © Astrodienst AG · <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" style="color:rgba(255,255,255,.4)">Licence</a> · <a href="https://github.com/gmelh/ephemeralREST" target="_blank" style="color:rgba(255,255,255,.4)">GitHub</a></span>
-    <span>ephemeralREST <?= defined('SITE_VERSION') ? 'v' . SITE_VERSION : '' ?></span>
+    <span>ephemeralREST v<?= portal_setting('site_version', '1.0') ?></span>
   </div>
 </footer>
 

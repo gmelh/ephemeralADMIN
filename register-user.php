@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$name) $errors['name'] = 'Name is required.';
 
     if (empty($errors)) {
-        $result = api_post('/register/user', [
+        $result = api_post('/register', [
             'email' => $email,
             'name'  => $name,
         ], false); // public endpoint — no admin key
@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <div class="reg-brand">
     <h1>ephemeralREST</h1>
-    <p>Register for a personal API key</p>
+    <p>Create your account</p>
   </div>
 
   <?php if ($success): ?>
@@ -114,8 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <strong><?= htmlspecialchars($_POST['email'] ?? '') ?></strong>.
         </p>
         <p style="font-size:14px; color:var(--ink-light); margin-bottom:24px;">
-          Click the link to activate your API key. Your key will be emailed to you
-          once verified — please save it securely. The link expires in 24 hours.
+          Click the link to verify your address. You'll then be sent a link
+          to set your password and activate your account. The link expires
+          in 24 hours.
         </p>
         <p style="font-size:13px; color:var(--ink-faint);">
           Didn't receive it? Check your spam folder, or
@@ -160,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   <span class="form-error"><?= htmlspecialchars($errors['email']) ?></span>
                 <?php else: ?>
                   <span class="form-hint">
-                    A verification link will be sent here. Your email becomes your API key identifier.
+                    A verification link will be sent here. This will be your login email address.
                   </span>
                 <?php endif; ?>
               </div>
@@ -182,8 +183,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <ol style="font-size:14px; color:var(--ink-light); line-height:1.8; padding-left:18px; margin:0;">
               <li>Enter your name and email address.</li>
               <li>Click the verification link in your email.</li>
-              <li>Your API key will be emailed to you — save it securely.</li>
-              <li>Use it in the <code>X-API-Key</code> header on every request.</li>
+              <li>Set a password for your account.</li>
+              <li>Sign in with your email and password.</li>
             </ol>
           </div>
         </div>

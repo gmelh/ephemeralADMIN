@@ -155,7 +155,7 @@ require_once __DIR__ . '/includes/header.php';
     <?php if ($key_id && $is_admin): ?>
       <a href="/key-detail.php?id=<?= $key_id ?>" class="btn btn--ghost">← Key Detail</a>
     <?php elseif (!$is_admin): ?>
-      <a href="/portal-<?= auth_is_domain() ? 'domain' : 'user' ?>.php" class="btn btn--ghost">← Portal</a>
+      <a href="/portal-user.php" class="btn btn--ghost">← Portal</a>
     <?php endif; ?>
   </div>
 </div>

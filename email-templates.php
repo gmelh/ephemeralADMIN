@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
     $action = $input['action'] ?? 'save';
     $name   = preg_replace('/[^a-z0-9_-]/', '', $input['name'] ?? 'test');
 
-    $all_template_names = ['test', 'register-domain', 'register-approved', 'register-rejected', 'user-verify', 'key-rotated'];
+    $all_template_names = ['test', 'registration-verification', 'key-rotated', 'user-activated', 'set-password', 'password-reset-required', '2fa-code'];
 
     if ($action === 'save') {
         $width       = max(320, min(800, (int)($input['content_width'] ?? 600)));
@@ -113,48 +113,59 @@ $templates_meta = [
             'footer_text' => 'You are receiving this email because an administrator triggered a test.',
         ],
     ],
-    'register-domain' => [
-        'label'    => 'Domain Registration',
-        'desc'     => 'Sent immediately when a domain key request is submitted.',
-        'vars'     => ['{domain}' => 'Registered domain or *', '{name}' => 'Contact name'],
-        'defaults' => [
-            'subject'     => 'We\'ve received your API key request',
-            'header_text' => 'ephemeralREST',
-            'body_text'   => "Hi {name},\n\nThank you for submitting a registration request for {domain}.\n\nYour request has been received and will be reviewed within 1–2 business days. You'll receive another email once a decision has been made.\n\nIf you have any questions, please reply to this email.",
-            'footer_text' => 'You are receiving this email because you submitted an API key request at ephemeralREST.',
-        ],
-    ],
-    'register-approved' => [
-        'label'    => 'Registration Approved',
-        'desc'     => 'Sent when an admin approves a domain key request. Contains the API key.',
-        'vars'     => ['{domain}' => 'Registered domain', '{name}' => 'Contact name', '{api_key}' => 'The issued API key', '{admin_note}' => 'Optional note from the admin'],
-        'defaults' => [
-            'subject'     => 'Your API key is ready',
-            'header_text' => 'ephemeralREST',
-            'body_text'   => "Hi {name},\n\nYour registration request for {domain} has been approved.\n\nYour API key is:\n\n{api_key}\n\nThis key will not be shown again — please store it securely now. Include it in every API request as the X-API-Key header.\n\n{admin_note}",
-            'footer_text' => 'You are receiving this email because your ephemeralREST API key request was approved.',
-        ],
-    ],
-    'register-rejected' => [
-        'label'    => 'Registration Rejected',
-        'desc'     => 'Sent when an admin rejects a domain key request.',
-        'vars'     => ['{domain}' => 'Registered domain', '{name}' => 'Contact name', '{admin_note}' => 'Optional note from the admin'],
-        'defaults' => [
-            'subject'     => 'Update on your API key request',
-            'header_text' => 'ephemeralREST',
-            'body_text'   => "Hi {name},\n\nThank you for your interest in ephemeralREST.\n\nUnfortunately, your registration request for {domain} has not been approved at this time.\n\n{admin_note}\n\nYou are welcome to submit a new request in the future.",
-            'footer_text' => 'You are receiving this email because you submitted an API key request at ephemeralREST.',
-        ],
-    ],
-    'user-verify' => [
+    'registration-verification' => [
         'label'    => 'Email Verification',
-        'desc'     => 'Sent when a user registers. Contains a one-time verification link.',
-        'vars'     => ['{name}' => 'User name', '{verification_url}' => 'One-time verification link (expires in 24 hours)'],
+        'desc'     => 'Sent when a user registers. Contains a link to verify their email address.',
+        'vars'     => ['{name}' => 'User name', '{verify_url}' => 'One-time verification link (expires in 24 hours)'],
         'defaults' => [
             'subject'     => 'Verify your email address',
             'header_text' => 'ephemeralREST',
-            'body_text'   => "Hi {name},\n\nPlease verify your email address to activate your ephemeralREST API key.\n\nClick the link below to verify:\n\n{verification_url}\n\nThis link expires in 24 hours. Once verified, your API key will be displayed once — store it securely.\n\nIf you did not request this, you can safely ignore this email.",
-            'footer_text' => 'You are receiving this email because someone registered with this address at ephemeralREST.',
+            'body_text'   => "Hi {name},\n\nThank you for registering. Click the link below to verify your email address:\n\n{verify_url}\n\nThis link expires in 24 hours.\n\nIf you did not request this, you can safely ignore this email.",
+            'footer_text' => 'ephemeralREST',
+        ],
+    ],
+    'user-activated' => [
+        'label'    => 'Account Activated',
+        'desc'     => 'Sent after a user sets their password and their account becomes fully active. Contains the API key.',
+        'vars'     => ['{name}' => 'User name', '{api_key}' => 'The issued API key'],
+        'defaults' => [
+            'subject'     => 'Your API key is ready',
+            'header_text' => 'ephemeralREST',
+            'body_text'   => "Hi {name},\n\nYour account is now active.\n\nYour API key is:\n\n{api_key}\n\nThis key will not be shown again — please store it securely.",
+            'footer_text' => 'You are receiving this email because your ephemeralREST account was activated.',
+        ],
+    ],
+    'set-password' => [
+        'label'    => 'Set Password',
+        'desc'     => 'Sent after email verification. Contains a link to the set-password page.',
+        'vars'     => ['{name}' => 'User name', '{set_password_url}' => 'One-time link to set a password (expires in 24 hours)'],
+        'defaults' => [
+            'subject'     => 'Set your password',
+            'header_text' => 'ephemeralREST',
+            'body_text'   => "Hi {name},\n\nYour email has been verified. Click the link below to set a password for your account:\n\n{set_password_url}\n\nThis link expires in 24 hours.",
+            'footer_text' => 'You are receiving this email because you registered at ephemeralREST.',
+        ],
+    ],
+    'password-reset-required' => [
+        'label'    => 'Password Reset Required',
+        'desc'     => 'Sent when an admin requires a user to set a new password.',
+        'vars'     => ['{name}' => 'User name', '{set_password_url}' => 'One-time link to set a new password (expires in 24 hours)'],
+        'defaults' => [
+            'subject'     => 'Please reset your password',
+            'header_text' => 'ephemeralREST',
+            'body_text'   => "Hi {name},\n\nAn administrator has required that you set a new password.\n\nClick the link below to set a new password:\n\n{set_password_url}\n\nThis link expires in 24 hours.",
+            'footer_text' => 'You are receiving this email because an administrator reset your ephemeralREST password.',
+        ],
+    ],
+    '2fa-code' => [
+        'label'    => '2FA Verification Code',
+        'desc'     => 'Sent during login when a trusted-device cookie is not present.',
+        'vars'     => ['{name}' => 'User name', '{code}' => '6-digit verification code', '{expiry_minutes}' => 'Minutes until the code expires'],
+        'defaults' => [
+            'subject'     => 'Your login verification code',
+            'header_text' => 'ephemeralREST',
+            'body_text'   => "Hi {name},\n\nYour verification code is:\n\n{code}\n\nThis code expires in {expiry_minutes} minutes. If you did not attempt to log in, you can safely ignore this email.",
+            'footer_text' => 'You are receiving this email because a login was attempted at ephemeralREST.',
         ],
     ],
     'key-rotated' => [

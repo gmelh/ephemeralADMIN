@@ -24,6 +24,13 @@
  * THE SOFTWARE.
  */
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 2fa.php — Step 2 of login: email verification code
+//
+// Reached after login.php receives {"2fa_required": true} from /login.
+// Requires $_SESSION['pending_email'] to be set by auth_attempt_login().
+// ─────────────────────────────────────────────────────────────────────────────
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/api.php';
 require_once __DIR__ . '/includes/auth.php';
@@ -33,51 +40,38 @@ function portal_url(array $user): string
     return !empty($user['admin']) ? '/portal-admin.php' : '/portal-user.php';
 }
 
-// Check whether first-run setup is needed
-$setup_check = api_get('/setup/status', false);
-if ($setup_check['ok'] && !empty($setup_check['data']['setup_required'])) {
-    header('Location: /setup.php');
-    exit;
-}
-
-// Already logged in — redirect to appropriate portal
+// Already logged in — nothing to do here
 if (auth_check()) {
     header('Location: ' . portal_url(auth_user()));
     exit;
 }
 
-$error         = '';
-$next          = $_GET['next'] ?? '';
-$access_denied = isset($_GET['error']) && $_GET['error'] === 'access_denied';
+$email = auth_pending_email();
+if (!$email) {
+    // No pending login — start over
+    header('Location: /login.php');
+    exit;
+}
+
+$error = '';
+$next  = $_GET['next'] ?? $_POST['next'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $code            = trim($_POST['code'] ?? '');
+    $remember_device = !empty($_POST['remember_device']);
 
-    if (!$email || !$password) {
-        $error = 'Please enter your email address and password.';
+    if (!$code) {
+        $error = 'Please enter the verification code from your email.';
     } else {
-        $result = auth_attempt_login($email, $password);
+        $result = auth_verify_2fa($email, $code, $remember_device);
 
-        switch ($result['state']) {
-            case 'logged_in':
-                $redirect = $next ?: portal_url($result['user']);
-                header('Location: ' . $redirect);
-                exit;
-
-            case 'must_change_password':
-                header('Location: /set-password.php');
-                exit;
-
-            case '2fa_required':
-                $redirect = '/2fa.php';
-                if ($next) $redirect .= '?next=' . urlencode($next);
-                header('Location: ' . $redirect);
-                exit;
-
-            default:
-                $error = $result['message'] ?? 'Invalid email or password.';
+        if ($result['state'] === 'logged_in') {
+            $redirect = $next ?: portal_url($result['user']);
+            header('Location: ' . $redirect);
+            exit;
         }
+
+        $error = $result['message'] ?? 'Invalid or expired verification code.';
     }
 }
 ?>
@@ -86,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — ephemeralREST</title>
+  <title>Verify — ephemeralREST</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -118,20 +112,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       overflow: hidden;
     }
 
-    body::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.4) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 50% 70%, rgba(200,168,75,.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,.3) 0%, transparent 100%),
-        radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,.35) 0%, transparent 100%),
-        radial-gradient(2px 2px at 40% 40%, rgba(255,255,255,.2) 0%, transparent 100%);
-      pointer-events: none;
-    }
-
     body::after {
       content: '';
       position: absolute;
@@ -155,6 +135,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       gap: 10px;
       margin-bottom: 40px;
       text-decoration: none;
+      position: relative;
+      z-index: 1;
     }
 
     .login-brand__star { font-size: 22px; color: var(--gold); }
@@ -195,6 +177,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       line-height: 1.5;
     }
 
+    .login-box__desc strong { color: var(--ink, #e4e1da); }
+
     .login-box__body {
       padding: 28px 32px 32px;
     }
@@ -206,16 +190,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       padding: 11px 14px;
       font-size: 13.5px;
       color: var(--error);
-      margin-bottom: 18px;
-    }
-
-    .access-denied {
-      background: #fef8ed;
-      border: 1px solid #f5dca8;
-      border-radius: 6px;
-      padding: 11px 14px;
-      font-size: 13.5px;
-      color: #92560a;
       margin-bottom: 18px;
     }
 
@@ -232,18 +206,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       color: var(--ink, #e4e1da);
     }
 
-    input[type="email"],
-    input[type="password"] {
+    input[type="text"] {
       width: 100%;
-      padding: 10px 14px;
+      padding: 12px 14px;
       border: 1px solid #3d3d3a;
       border-radius: 6px;
       font-family: 'DM Mono', monospace;
-      font-size: 13px;
+      font-size: 22px;
+      letter-spacing: .3em;
+      text-align: center;
       color: var(--ink, #e4e1da);
       background: var(--surface, #1f1f1d);
       transition: border-color .15s, box-shadow .15s;
-      letter-spacing: .02em;
     }
 
     input:focus {
@@ -252,7 +226,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       box-shadow: 0 0 0 3px rgba(37,99,171,.1);
     }
 
-    .hint { font-size: 12px; color: #525250; }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    .checkbox-row label {
+      font-size: 13px;
+      font-weight: 400;
+      color: #8a8a84;
+      margin: 0;
+    }
 
     .btn-submit {
       width: 100%;
@@ -270,27 +262,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .btn-submit:hover { background: #3a7bbf; }
-
-    .login-links {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding-top: 16px;
-      border-top: 1px solid #2e2e2c;
-    }
-
-    .login-link {
-      font-size: 13px;
-      color: #8a8a84;
-      text-decoration: none;
-      display: flex;
-      justify-content: space-between;
-      padding: 7px 0;
-    }
-
-    .login-link:hover { color: var(--accent); }
-
-    .login-link__arrow { opacity: .4; }
 
     .back-link {
       margin-top: 32px;
@@ -314,15 +285,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="login-box">
   <div class="login-box__head">
-    <h1 class="login-box__title">Sign in</h1>
-    <p class="login-box__desc">Enter your email and password to access your portal.</p>
+    <h1 class="login-box__title">Check your email</h1>
+    <p class="login-box__desc">
+      We sent a verification code to <strong><?= htmlspecialchars($email) ?></strong>.
+      Enter it below to continue.
+    </p>
   </div>
 
   <div class="login-box__body">
-
-    <?php if ($access_denied): ?>
-      <div class="access-denied">Your account doesn't have permission to access that area.</div>
-    <?php endif; ?>
 
     <?php if ($error): ?>
       <div class="error-box"><?= htmlspecialchars($error) ?></div>
@@ -334,38 +304,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <?php endif; ?>
 
       <div class="form-group">
-        <label for="email">Email address</label>
-        <input type="email" id="email" name="email"
-               placeholder="you@example.com"
-               autocomplete="username"
+        <label for="code">Verification code</label>
+        <input type="text" id="code" name="code"
+               inputmode="numeric" pattern="[0-9]*" maxlength="6"
+               placeholder="000000"
+               autocomplete="one-time-code"
                autofocus required>
       </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password"
-               placeholder="••••••••"
-               autocomplete="current-password"
-               required>
+      <div class="checkbox-row">
+        <input type="checkbox" id="remember_device" name="remember_device" value="1">
+        <label for="remember_device">Remember this device for <?= (int)portal_setting('trusted_device_days', 28) ?> days</label>
       </div>
 
-      <button type="submit" class="btn-submit">Sign In →</button>
-
-      <div class="login-links">
-        <a href="/forgot-password.php" class="login-link">
-          <span>Forgot your password?</span>
-          <span class="login-link__arrow">→</span>
-        </a>
-        <a href="/register-user.php" class="login-link">
-          <span>Create an account</span>
-          <span class="login-link__arrow">→</span>
-        </a>
-      </div>
+      <button type="submit" class="btn-submit">Verify →</button>
     </form>
   </div>
 </div>
 
-<a href="/landing.php" class="back-link">← Back to home</a>
+<a href="/login.php" class="back-link">← Back to sign in</a>
 
 </body>
 </html>

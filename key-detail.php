@@ -26,6 +26,8 @@
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/api.php';
+require_once __DIR__ . '/includes/auth.php';
+auth_require('admin');
 
 $page_title = 'Key Detail';
 
@@ -38,17 +40,6 @@ if (!$key_id) {
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-
-    if ($action === 'set-type') {
-        $new_type = $_POST['key_type'] ?? '';
-        if (in_array($new_type, ['domain', 'user'])) {
-            $result = my_api_post("/admin/keys/{$key_id}/set-type", ['key_type' => $new_type]);
-            flash_set($result['ok'] ? 'success' : 'error',
-                $result['ok'] ? "Key type changed to '{$new_type}'." : ($result['data']['error'] ?? 'Update failed.'));
-        } else {
-            flash_set('error', 'Invalid key type.');
-        }
-    }
 
     if ($action === 'set-limits') {
         $rpm = strlen($_POST['rpm'] ?? '') ? (int)$_POST['rpm'] : null;
@@ -105,10 +96,6 @@ require_once __DIR__ . '/includes/header.php';
       <?= htmlspecialchars($key['identifier'] ?? 'Key #' . $key_id) ?>
     </h1>
     <p class="page-subtitle">
-      <span class="<?= status_badge($key['key_type'] ?? '') ?>">
-        <?= htmlspecialchars($key['key_type'] ?? '') ?>
-      </span>
-      &nbsp;
       <span class="<?= status_badge($key['active'] ? 'active' : 'disabled') ?>">
         <?= ($key['active'] ?? false) ? 'active' : 'disabled' ?>
       </span>
@@ -137,7 +124,6 @@ require_once __DIR__ . '/includes/header.php';
           <dt>ID</dt>         <dd class="mono"><?= (int)($key['id'] ?? 0) ?></dd>
           <dt>Name</dt>       <dd><?= htmlspecialchars($key['name'] ?? '—') ?></dd>
           <dt>Identifier</dt> <dd><?= htmlspecialchars($key['identifier'] ?? '—') ?></dd>
-          <dt>Type</dt>       <dd><span class="<?= status_badge($key['key_type'] ?? '') ?>"><?= htmlspecialchars($key['key_type'] ?? '—') ?></span></dd>
           <dt>Admin</dt>      <dd><?= !empty($key['admin']) ? 'Yes' : 'No' ?></dd>
           <dt>Prefix</dt>     <dd class="mono"><?= htmlspecialchars($key['key_prefix'] ?? '—') ?></dd>
           <dt>Created</dt>    <dd><?= htmlspecialchars(substr($key['created_at'] ?? '', 0, 10)) ?></dd>
@@ -148,26 +134,6 @@ require_once __DIR__ . '/includes/header.php';
 
     <!-- Dangerous actions -->
     <div>
-      <!-- Key Type -->
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card__head"><span class="card__title">Key Type</span></div>
-        <div class="card__body">
-          <p style="font-size:13px; color:var(--ink-light); margin-bottom:14px;">
-            Current type: <strong><?= htmlspecialchars($key['key_type'] ?? '—') ?></strong>.
-            Switching type changes how the key is classified and which class-level rate limits apply.
-          </p>
-          <?php $other_type = ($key['key_type'] ?? '') === 'domain' ? 'user' : 'domain'; ?>
-          <form method="POST">
-            <input type="hidden" name="action"   value="set-type">
-            <input type="hidden" name="key_type" value="<?= htmlspecialchars($other_type) ?>">
-            <button type="submit" class="btn btn--ghost"
-                    onclick="return confirm('Change this key from \'<?= htmlspecialchars($key['key_type'] ?? '') ?>\' to \'<?= htmlspecialchars($other_type) ?>\'?')">
-              Switch to <?= htmlspecialchars($other_type) ?>
-            </button>
-          </form>
-        </div>
-      </div>
-
       <div class="card" style="margin-bottom:16px;">
         <div class="card__head"><span class="card__title">Rotate Key</span></div>
         <div class="card__body">

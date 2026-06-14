@@ -25,7 +25,8 @@
  */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/api.php';
 require_once __DIR__ . '/includes/auth.php';
 auth_logout();
-header('Location: ' . LOGOUT_REDIRECT_URL);
+header('Location: ' . portal_setting('logout_redirect_url', '/login.php'));
 exit;

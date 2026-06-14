@@ -26,6 +26,8 @@
 
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/api.php';
+require_once __DIR__ . '/includes/auth.php';
+auth_require('admin');
 
 $page_title = 'Dashboard';
 

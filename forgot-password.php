@@ -24,69 +24,53 @@
  * THE SOFTWARE.
  */
 
+// ─────────────────────────────────────────────────────────────────────────────
+// forgot-password.php — Request a password reset link
+//
+// Public page — no login required.
+// Calls POST /password/forgot on the API; always shows the same confirmation
+// message regardless of whether the email is registered.
+// ─────────────────────────────────────────────────────────────────────────────
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/api.php';
 require_once __DIR__ . '/includes/auth.php';
 
-function portal_url(array $user): string
-{
-    return !empty($user['admin']) ? '/portal-admin.php' : '/portal-user.php';
-}
+if (session_status() === PHP_SESSION_NONE) session_start();
 
-// Check whether first-run setup is needed
-$setup_check = api_get('/setup/status', false);
-if ($setup_check['ok'] && !empty($setup_check['data']['setup_required'])) {
-    header('Location: /setup.php');
-    exit;
-}
-
-// Already logged in — redirect to appropriate portal
+// Already logged in — no need to be here
 if (auth_check()) {
-    header('Location: ' . portal_url(auth_user()));
+    header('Location: /login.php');
     exit;
 }
 
-$error         = '';
-$next          = $_GET['next'] ?? '';
-$access_denied = isset($_GET['error']) && $_GET['error'] === 'access_denied';
+$submitted = false;
+$error     = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $email = trim($_POST['email'] ?? '');
 
-    if (!$email || !$password) {
-        $error = 'Please enter your email address and password.';
+    if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Please enter a valid email address.';
     } else {
-        $result = auth_attempt_login($email, $password);
+        $result = api_post('/password/forgot', ['email' => $email], false);
 
-        switch ($result['state']) {
-            case 'logged_in':
-                $redirect = $next ?: portal_url($result['user']);
-                header('Location: ' . $redirect);
-                exit;
-
-            case 'must_change_password':
-                header('Location: /set-password.php');
-                exit;
-
-            case '2fa_required':
-                $redirect = '/2fa.php';
-                if ($next) $redirect .= '?next=' . urlencode($next);
-                header('Location: ' . $redirect);
-                exit;
-
-            default:
-                $error = $result['message'] ?? 'Invalid email or password.';
+        if ($result['ok'] || $result['status'] === 200) {
+            $submitted = true;
+        } else {
+            $error = $result['data']['error'] ?? 'Something went wrong. Please try again.';
         }
     }
 }
+
+$site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — ephemeralREST</title>
+  <title>Forgot Password — <?= htmlspecialchars($site_name) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -94,7 +78,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     :root {
       --ink:     #e4e1da;
       --border:  #2e2e2c;
-      --dark:    #0e0e0d;
       --gold:    #c8a84b;
       --accent:  #2563ab;
       --error:   #b42424;
@@ -127,8 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.4) 0%, transparent 100%),
         radial-gradient(1.5px 1.5px at 50% 70%, rgba(200,168,75,.5) 0%, transparent 100%),
         radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,.3) 0%, transparent 100%),
-        radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,.35) 0%, transparent 100%),
-        radial-gradient(2px 2px at 40% 40%, rgba(255,255,255,.2) 0%, transparent 100%);
+        radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,.35) 0%, transparent 100%);
       pointer-events: none;
     }
 
@@ -137,8 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       position: absolute;
       width: 160vw;
       height: 160vh;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       background: radial-gradient(ellipse at center,
         rgba(79, 143, 212, .55)  0%,
@@ -155,10 +136,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       gap: 10px;
       margin-bottom: 40px;
       text-decoration: none;
+      position: relative;
+      z-index: 1;
     }
 
     .login-brand__star { font-size: 22px; color: var(--gold); }
-
     .login-brand__name {
       font-family: 'Instrument Serif', serif;
       font-size: 20px;
@@ -166,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .login-box {
-      background: var(--surface, #1f1f1d);
+      background: #1f1f1d;
       border-radius: 12px;
       width: 100%;
       max-width: 400px;
@@ -178,26 +160,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .login-box__head {
       padding: 32px 32px 24px;
       border-bottom: 1px solid var(--border);
-      background: var(--surface-alt, #252523);
+      background: #252523;
     }
 
     .login-box__title {
       font-family: 'Instrument Serif', serif;
       font-size: 24px;
       font-weight: 400;
-      color: var(--ink, #e4e1da);
+      color: var(--ink);
       margin-bottom: 6px;
     }
 
     .login-box__desc {
       font-size: 13.5px;
       color: #8a8a84;
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
-    .login-box__body {
-      padding: 28px 32px 32px;
-    }
+    .login-box__body { padding: 28px 32px 32px; }
 
     .error-box {
       background: var(--error-bg);
@@ -209,14 +189,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       margin-bottom: 18px;
     }
 
-    .access-denied {
-      background: #fef8ed;
-      border: 1px solid #f5dca8;
+    .success-box {
+      background: #eef8ef;
+      border: 1px solid #b9e3bf;
       border-radius: 6px;
-      padding: 11px 14px;
+      padding: 14px 16px;
       font-size: 13.5px;
-      color: #92560a;
-      margin-bottom: 18px;
+      color: #2f7d3a;
+      line-height: 1.55;
+      margin-bottom: 20px;
     }
 
     .form-group {
@@ -229,21 +210,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     label {
       font-size: 13px;
       font-weight: 500;
-      color: var(--ink, #e4e1da);
+      color: var(--ink);
     }
 
-    input[type="email"],
-    input[type="password"] {
+    input[type="email"] {
       width: 100%;
       padding: 10px 14px;
       border: 1px solid #3d3d3a;
       border-radius: 6px;
       font-family: 'DM Mono', monospace;
       font-size: 13px;
-      color: var(--ink, #e4e1da);
-      background: var(--surface, #1f1f1d);
+      color: var(--ink);
+      background: #1f1f1d;
       transition: border-color .15s, box-shadow .15s;
-      letter-spacing: .02em;
     }
 
     input:focus {
@@ -251,8 +230,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(37,99,171,.1);
     }
-
-    .hint { font-size: 12px; color: #525250; }
 
     .btn-submit {
       width: 100%;
@@ -289,7 +266,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .login-link:hover { color: var(--accent); }
-
     .login-link__arrow { opacity: .4; }
 
     .back-link {
@@ -309,63 +285,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <a href="/landing.php" class="login-brand">
   <span class="login-brand__star">✦</span>
-  <span class="login-brand__name">ephemeralREST</span>
+  <span class="login-brand__name"><?= htmlspecialchars($site_name) ?></span>
 </a>
 
 <div class="login-box">
   <div class="login-box__head">
-    <h1 class="login-box__title">Sign in</h1>
-    <p class="login-box__desc">Enter your email and password to access your portal.</p>
+    <h1 class="login-box__title"><?= $submitted ? 'Check your email' : 'Forgot password?' ?></h1>
+    <p class="login-box__desc">
+      <?php if ($submitted): ?>
+        If that email address is registered, a reset link is on its way.
+      <?php else: ?>
+        Enter your email address and we'll send you a link to reset your password.
+      <?php endif; ?>
+    </p>
   </div>
 
   <div class="login-box__body">
 
-    <?php if ($access_denied): ?>
-      <div class="access-denied">Your account doesn't have permission to access that area.</div>
-    <?php endif; ?>
+    <?php if ($submitted): ?>
 
-    <?php if ($error): ?>
-      <div class="error-box"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
+      <div class="success-box">
+        Check your inbox for a password reset link. It expires in 24 hours.
+      </div>
+      <div class="login-links">
+        <a href="/login.php" class="login-link">
+          <span>Back to sign in</span>
+          <span class="login-link__arrow">→</span>
+        </a>
+      </div>
 
-    <form method="POST">
-      <?php if ($next): ?>
-        <input type="hidden" name="next" value="<?= htmlspecialchars($next) ?>">
+    <?php else: ?>
+
+      <?php if ($error): ?>
+        <div class="error-box"><?= htmlspecialchars($error) ?></div>
       <?php endif; ?>
 
-      <div class="form-group">
-        <label for="email">Email address</label>
-        <input type="email" id="email" name="email"
-               placeholder="you@example.com"
-               autocomplete="username"
-               autofocus required>
-      </div>
+      <form method="POST">
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email"
+                 placeholder="you@example.com"
+                 autocomplete="username"
+                 autofocus required>
+        </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password"
-               placeholder="••••••••"
-               autocomplete="current-password"
-               required>
-      </div>
+        <button type="submit" class="btn-submit">Send Reset Link →</button>
 
-      <button type="submit" class="btn-submit">Sign In →</button>
+        <div class="login-links">
+          <a href="/login.php" class="login-link">
+            <span>Back to sign in</span>
+            <span class="login-link__arrow">→</span>
+          </a>
+        </div>
+      </form>
 
-      <div class="login-links">
-        <a href="/forgot-password.php" class="login-link">
-          <span>Forgot your password?</span>
-          <span class="login-link__arrow">→</span>
-        </a>
-        <a href="/register-user.php" class="login-link">
-          <span>Create an account</span>
-          <span class="login-link__arrow">→</span>
-        </a>
-      </div>
-    </form>
+    <?php endif; ?>
+
   </div>
 </div>
 
-<a href="/landing.php" class="back-link">← Back to home</a>
+<a href="/login.php" class="back-link">← Back to sign in</a>
 
 </body>
 </html>

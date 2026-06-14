@@ -28,7 +28,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/api.php';
 require_once __DIR__ . '/includes/auth.php';
 auth_require();
-if (!auth_is_user() && !auth_is_admin()) { header('Location: /portal-domain.php'); exit; }
+// All authenticated users (admin or user) can access this page
 
 $page_title = 'My Portal';
 $user       = auth_user();

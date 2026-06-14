@@ -37,37 +37,33 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
 $current_user = auth_user();
 $is_admin     = auth_is_admin();
 
-// Build nav based on role
-$admin_nav = [
-    'portal-admin'    => ['label' => 'Dashboard',     'icon' => '◈'],
-    'registrations'   => ['label' => 'Registrations', 'icon' => '◎'],
-    'keys'            => ['label' => 'Keys',           'icon' => '◆'],
-    'register-key'    => ['label' => 'Register Key',   'icon' => '◇'],
-    'class-limits'    => ['label' => 'Class Limits',   'icon' => '⊟'],
-    'smtp'            => ['label' => 'SMTP Settings',  'icon' => '✉'],
-    'email-templates' => ['label' => 'Email Templates','icon' => '✎'],
-    'api-tester'      => ['label' => 'API Tester',     'icon' => '⌁'],
-];
+// ── Navigation ────────────────────────────────────────────────────────────────
+// Flat structure: admin or standard user. No domain/user distinction.
 
-$domain_nav = [
-    'portal-domain'   => ['label' => 'My Portal',   'icon' => '◈'],
-    'register-key'    => ['label' => 'Register Key', 'icon' => '◇'],
-    'api-tester'      => ['label' => 'API Tester',   'icon' => '⌁'],
+$admin_nav = [
+    'portal-admin'    => ['label' => 'Dashboard',      'icon' => '◈', 'section' => 'Admin'],
+    'keys'            => ['label' => 'Keys',            'icon' => '◆', 'section' => null],
+    'class-limits'    => ['label' => 'Rate Limits',     'icon' => '⊟', 'section' => null],
+    'smtp'             => ['label' => 'SMTP Settings',    'icon' => '✉', 'section' => null],
+    'email-templates'  => ['label' => 'Email Templates',  'icon' => '✎', 'section' => null],
+    'portal-settings'  => ['label' => 'Portal Settings',  'icon' => '⚙', 'section' => null],
+    'api-tester'      => ['label' => 'API Tester',      'icon' => '⌁', 'section' => 'Tools'],
 ];
 
 $user_nav = [
-    'portal-user'     => ['label' => 'My Portal',   'icon' => '◈'],
-    'api-tester'      => ['label' => 'API Tester',   'icon' => '⌁'],
+    'portal-user' => ['label' => 'My Account',    'icon' => '◈', 'section' => 'Account'],
+    'key-output'  => ['label' => 'Output Config',  'icon' => '⊟', 'section' => null],
+    'api-tester'  => ['label' => 'API Tester',     'icon' => '⌁', 'section' => 'Tools'],
 ];
 
-$nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
+$nav = $is_admin ? $admin_nav : $user_nav;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= htmlspecialchars($page_title ?? SITE_NAME) ?> — <?= SITE_NAME ?></title>
+  <title><?= htmlspecialchars($page_title ?? portal_setting('site_name')) ?> — <?= portal_setting('site_name') ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -166,7 +162,7 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
 <div class="mobile-bar">
   <a href="/landing.php" class="mobile-bar__brand">
     <span class="mobile-bar__star">✦</span>
-    <span class="mobile-bar__name"><?= SITE_NAME ?></span>
+    <span class="mobile-bar__name"><?= portal_setting('site_name') ?></span>
   </a>
   <button class="hamburger" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
     <span></span><span></span><span></span>
@@ -183,7 +179,7 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
     <div class="sidebar__brand">
       <a href="/landing.php" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
         <span class="sidebar__logo">✦</span>
-        <span class="sidebar__name"><?= SITE_NAME ?></span>
+        <span class="sidebar__name"><?= portal_setting('site_name') ?></span>
       </a>
     </div>
 
@@ -192,39 +188,28 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
       <div class="sidebar__user-name"><?= htmlspecialchars($current_user['name'] ?? '') ?></div>
       <div class="sidebar__user-id"><?= htmlspecialchars($current_user['identifier'] ?? '') ?></div>
       <span class="sidebar__user-badge <?= $is_admin ? 'sidebar__user-badge--admin' : '' ?>">
-        <?= $is_admin ? 'admin' : htmlspecialchars($current_user['key_type'] ?? '') ?>
+        <?= $is_admin ? 'admin' : 'user' ?>
       </span>
     </div>
     <?php endif; ?>
 
     <nav class="sidebar__nav">
-      <?php if ($is_admin): ?>
-        <div class="sidebar__section">Admin</div>
-        <?php foreach (['portal-admin','registrations','keys','class-limits','smtp','email-templates','api-tester'] as $page): ?>
-          <a href="/<?= $page ?>.php"
-             class="sidebar__link <?= $current_page === $page ? 'sidebar__link--active' : '' ?>">
-            <span class="sidebar__icon"><?= $nav[$page]['icon'] ?></span>
-            <?= $nav[$page]['label'] ?>
-          </a>
-        <?php endforeach; ?>
-        <div class="sidebar__section sidebar__section--mt">Public</div>
-        <?php foreach (['register-key'] as $page): ?>
-          <a href="/<?= $page ?>.php"
-             class="sidebar__link <?= $current_page === $page ? 'sidebar__link--active' : '' ?>">
-            <span class="sidebar__icon"><?= $nav[$page]['icon'] ?></span>
-            <?= $nav[$page]['label'] ?>
-          </a>
-        <?php endforeach; ?>
-      <?php elseif ($current_user): ?>
-        <div class="sidebar__section">My Account</div>
-        <?php foreach ($nav as $page => $item): ?>
-          <a href="/<?= $page ?>.php"
-             class="sidebar__link <?= $current_page === $page ? 'sidebar__link--active' : '' ?>">
-            <span class="sidebar__icon"><?= $item['icon'] ?></span>
-            <?= $item['label'] ?>
-          </a>
-        <?php endforeach; ?>
+      <?php
+      $current_section = null;
+      foreach ($nav as $page => $item):
+          if ($item['section'] !== null && $item['section'] !== $current_section):
+              $current_section = $item['section'];
+      ?>
+        <div class="sidebar__section<?= $current_section !== array_values($nav)[0]['section'] ? ' sidebar__section--mt' : '' ?>">
+          <?= htmlspecialchars($current_section) ?>
+        </div>
       <?php endif; ?>
+        <a href="/<?= $page ?>.php"
+           class="sidebar__link <?= $current_page === $page ? 'sidebar__link--active' : '' ?>">
+          <span class="sidebar__icon"><?= $item['icon'] ?></span>
+          <?= htmlspecialchars($item['label']) ?>
+        </a>
+      <?php endforeach; ?>
     </nav>
 
     <div class="sidebar__footer">
@@ -234,7 +219,7 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
         ⎋ &nbsp;Sign Out
       </a>
       <?php endif; ?>
-      <span class="sidebar__version">v<?= SITE_VERSION ?></span>
+      <span class="sidebar__version">v<?= portal_setting('site_version', '1.0') ?></span>
     </div>
   </aside>
 
@@ -283,3 +268,4 @@ $nav = $is_admin ? $admin_nav : (auth_is_domain() ? $domain_nav : $user_nav);
           <?= htmlspecialchars($flash['message']) ?>
         </div>
       <?php endif; ?>
+      

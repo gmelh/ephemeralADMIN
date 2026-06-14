@@ -91,19 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
         exit;
     }
 
-    if ($action === 'set-type') {
-        $new_type = $input['key_type'] ?? '';
-        if (!in_array($new_type, ['domain', 'user'])) {
-            echo json_encode(['ok' => false, 'error' => "key_type must be 'domain' or 'user'"]); exit;
-        }
-        $result = my_api_post("/admin/keys/{$key_id}/set-type", ['key_type' => $new_type]);
-        echo json_encode($result['ok']
-            ? ['ok' => true,  'message' => "Key type changed to '{$new_type}'.", 'key_type' => $new_type]
-            : ['ok' => false, 'error'   => extractApiError($result)]);
-        exit;
-    }
-
-    if ($action === 'set-admin' && defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION) {
+    if ($action === 'set-admin' && portal_setting('allow_admin_promotion', true)) {
         $grant  = (bool)($input['admin'] ?? false);
         $result = my_api_post("/admin/keys/{$key_id}/set-admin", ['admin' => $grant]);
         echo json_encode($result['ok']
@@ -116,8 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
 }
 
 // Fetch all keys
-$type_filter     = $_GET['type']    ?? 'all';
-$show_inactive   = isset($_GET['inactive']);
+$show_inactive = isset($_GET['inactive']);
 
 $result = my_api_get('/admin/keys' . ($show_inactive ? '?inactive=1' : ''));
 $keys   = [];
@@ -125,9 +112,6 @@ $api_ok = $result['ok'];
 
 if ($api_ok) {
     $keys = $result['data']['keys'] ?? [];
-    if ($type_filter !== 'all') {
-        $keys = array_values(array_filter($keys, fn($k) => ($k['key_type'] ?? '') === $type_filter));
-    }
 }
 
 require_once __DIR__ . '/includes/header.php';
@@ -136,21 +120,14 @@ require_once __DIR__ . '/includes/header.php';
 <div class="page-header">
   <div>
     <h1 class="page-title">API Keys</h1>
-    <p class="page-subtitle">Manage all domain and user API keys</p>
+    <p class="page-subtitle">Manage all API keys</p>
   </div>
-</div>
-
-<div style="display:flex; gap:14px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
-  <div class="tabs" style="margin-bottom:0;">
-    <?php foreach (['all' => 'All', 'domain' => 'Domain', 'user' => 'User'] as $val => $label): ?>
-      <a href="?type=<?= $val ?><?= $show_inactive ? '&inactive=1' : '' ?>"
-         class="tab <?= $type_filter === $val ? 'tab--active' : '' ?>"><?= $label ?></a>
-    <?php endforeach; ?>
+  <div class="actions">
+    <a href="?<?= $show_inactive ? '' : 'inactive=1' ?>"
+       class="btn btn--ghost btn--sm">
+      <?= $show_inactive ? 'Hide disabled' : 'Show disabled' ?>
+    </a>
   </div>
-  <a href="?type=<?= $type_filter ?><?= $show_inactive ? '' : '&inactive=1' ?>"
-     class="btn btn--ghost btn--sm">
-    <?= $show_inactive ? 'Hide disabled' : 'Show disabled' ?>
-  </a>
 </div>
 
 <?php if (!$api_ok): ?>
@@ -165,7 +142,7 @@ require_once __DIR__ . '/includes/header.php';
 <?php else: ?>
   <div class="card">
     <div class="card__head">
-      <span class="card__title"><?= $type_filter === 'all' ? 'All' : ucfirst($type_filter) ?> Keys</span>
+      <span class="card__title">Keys</span>
       <span class="count-label"><?= count($keys) ?> key<?= count($keys) !== 1 ? 's' : '' ?></span>
     </div>
     <div class="table-wrap">
@@ -174,7 +151,6 @@ require_once __DIR__ . '/includes/header.php';
           <tr>
             <th>Identifier</th>
             <th>Name</th>
-            <th>Type</th>
             <th>Prefix</th>
             <th>Status</th>
             <th>rpm</th>
@@ -194,8 +170,7 @@ require_once __DIR__ . '/includes/header.php';
                 <?php endif; ?>
               </td>
               <td style="color:var(--ink-light);font-size:13px;"><?= htmlspecialchars($key['name'] ?? '—') ?></td>
-              <td><span class="<?= status_badge($key['key_type'] ?? '') ?>"><?= htmlspecialchars($key['key_type'] ?? '—') ?></span></td>
-              <td class="mono" style="font-size:11.5px;color:var(--ink-light);"><?= htmlspecialchars($key['key_prefix'] ?? '—') ?></td>
+                  <td class="mono" style="font-size:11.5px;color:var(--ink-light);"><?= htmlspecialchars($key['key_prefix'] ?? '—') ?></td>
               <td>
                 <span class="<?= status_badge(!empty($key['active']) ? 'active' : 'disabled') ?>"
                       id="key-status-<?= (int)$key['id'] ?>">
@@ -286,11 +261,10 @@ require_once __DIR__ . '/includes/header.php';
         <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px;">Key Type</p>
         <div style="display:flex; align-items:center; gap:12px;">
           <span id="key-type-badge"></span>
-          <button class="btn btn--ghost btn--sm" id="btn-set-type" onclick="setKeyType()"></button>
         </div>
       </div>
 
-      <?php if (defined('ALLOW_ADMIN_PROMOTION') && ALLOW_ADMIN_PROMOTION): ?>
+      <?php if (portal_setting('allow_admin_promotion', true)): ?>
       <!-- Admin Access -->
       <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;">
         <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px;">Admin Access</p>
@@ -316,23 +290,19 @@ require_once __DIR__ . '/includes/header.php';
 
 <script>
 let currentKeyActive = true;
-let currentKeyType   = '';
 
 function openKeyModal(key) {
   document.getElementById('key-id').value                   = key.id;
   document.getElementById('key-modal-title').textContent    = key.identifier;
   document.getElementById('key-detail-id').textContent      = key.identifier;
   document.getElementById('key-detail-prefix').textContent  = key.key_prefix || '—';
-  document.getElementById('key-detail-type').innerHTML      = '<span class="badge badge--' + (key.key_type === 'domain' ? 'blue' : 'purple') + '">' + (key.key_type || '—') + '</span>';
   document.getElementById('key-rpm').value                  = key.rate_per_minute ?? '';
   document.getElementById('key-rph').value                  = key.rate_per_hour   ?? '';
   document.getElementById('key-rpd').value                  = key.rate_per_day    ?? '';
   document.getElementById('key-modal-error').style.display  = 'none';
   document.getElementById('rotated-key-display').style.display = 'none';
 
-  currentKeyType   = key.key_type || '';
   currentKeyActive = !!key.active;
-  updateKeyTypeBadge(currentKeyType);
 
   const adminDiv = document.getElementById('admin-actions');
   if (adminDiv) {
@@ -353,53 +323,7 @@ function openKeyModal(key) {
   document.getElementById('keyModal').classList.add('is-open');
 }
 
-function updateKeyTypeBadge(type) {
-  const other = type === 'domain' ? 'user' : 'domain';
-  document.getElementById('key-type-badge').innerHTML =
-    '<span class="badge badge--' + (type === 'domain' ? 'blue' : 'purple') + '">' + type + '</span>';
-  document.getElementById('btn-set-type').textContent = 'Switch to ' + other;
-}
-
-async function setKeyType() {
-  const keyId   = document.getElementById('key-id').value;
-  const newType = currentKeyType === 'domain' ? 'user' : 'domain';
-  const errEl   = document.getElementById('key-modal-error');
-  errEl.style.display = 'none';
-
-  if (!confirm('Change key type from \'' + currentKeyType + '\' to \'' + newType + '\'?')) return;
-
-  document.getElementById('btn-set-type').disabled = true;
-
-  try {
-    const res  = await fetch('/keys.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      body: JSON.stringify({ action: 'set-type', key_id: parseInt(keyId), key_type: newType }),
-    });
-    const data = await res.json();
-    if (!data.status) data.status = res.status;
-
-    if (data.ok) {
-      currentKeyType = newType;
-      updateKeyTypeBadge(newType);
-      // Update the type badge in the table row
-      const rowType = document.querySelector('#key-row-' + keyId + ' .badge');
-      if (rowType) {
-        rowType.className   = 'badge badge--' + (newType === 'domain' ? 'blue' : 'purple');
-        rowType.textContent = newType;
-      }
-      showFlash('success', data.message);
-    } else {
-      errEl.textContent   = apiError(data);
-      errEl.style.display = 'block';
-    }
-  } catch(e) {
-    errEl.textContent   = 'Network error — please try again.';
-    errEl.style.display = 'block';
-  } finally {
-    document.getElementById('btn-set-type').disabled = false;
-  }
-}
+// updateKeyTypeBadge and setKeyType removed — flat key structure
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('is-open');

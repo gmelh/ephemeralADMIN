@@ -29,7 +29,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 define('API_BASE',      'http://localhost:5000');
-define('ADMIN_API_KEY', 'your-admin-api-key-here');
+define('ADMIN_API_KEY', 'ValmHbEInrg91NDiH53v9Cu2LW8xc6ILM1R73gXgggZ');
 define('SITE_NAME',     'ephemeralREST');
 define('SITE_VERSION',  '1.0');
 
@@ -46,6 +46,14 @@ define('ALLOW_ADMIN_PROMOTION', true);
 // Use a relative path (e.g. '/landing.php') to stay on this server,
 // or a full URL (e.g. 'https://myapp.com') to redirect elsewhere.
 define('LOGOUT_REDIRECT_URL', '/login.php');
+
+// Number of days a "remember this device" cookie remains valid, allowing
+// login to skip the 2FA email step on recognised machines. This should
+// normally match the API's TRUSTED_DEVICE_DAYS setting — the API is the
+// final authority on token expiry, but the cookie's Max-Age should agree
+// with it so the cookie doesn't outlive (or disappear long before) the
+// token it represents.
+define('TRUSTED_DEVICE_COOKIE_DAYS', 28);
 
 // Timezone for displaying dates
 date_default_timezone_set('UTC');

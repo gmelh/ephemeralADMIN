@@ -24,59 +24,73 @@
  * THE SOFTWARE.
  */
 
+// ─────────────────────────────────────────────────────────────────────────────
+// set-password.php — Set or reset a password
+//
+// Reached via two paths:
+//   1. ?t=TOKEN     — link from a "set your password" or admin-forced
+//                      password-reset email (POST /password/set with token)
+//   2. (no token)   — reached from login.php after /login returned
+//                      {"must_change_password": true}. Uses
+//                      $_SESSION['pending_email'] (POST /password/set with
+//                      email + current_password)
+//
+// On success, redirects to login.php so the user logs in fresh (with the
+// new password, and 2FA as normal).
+// ─────────────────────────────────────────────────────────────────────────────
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/api.php';
 require_once __DIR__ . '/includes/auth.php';
 
-function portal_url(array $user): string
-{
-    return !empty($user['admin']) ? '/portal-admin.php' : '/portal-user.php';
-}
+$token = trim($_GET['t'] ?? $_POST['t'] ?? '');
+$email = auth_pending_email();
 
-// Check whether first-run setup is needed
-$setup_check = api_get('/setup/status', false);
-if ($setup_check['ok'] && !empty($setup_check['data']['setup_required'])) {
-    header('Location: /setup.php');
+// Token flow doesn't need a session email — it's identified by the token.
+// must_change_password flow requires a pending email from login.php.
+if (!$token && !$email) {
+    header('Location: /login.php');
     exit;
 }
 
-// Already logged in — redirect to appropriate portal
-if (auth_check()) {
-    header('Location: ' . portal_url(auth_user()));
-    exit;
-}
+$is_must_change = !$token; // true when reached via the must_change_password path
 
-$error         = '';
-$next          = $_GET['next'] ?? '';
-$access_denied = isset($_GET['error']) && $_GET['error'] === 'access_denied';
+$error   = '';
+$success = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $new_password = trim($_POST['new_password'] ?? '');
+    $confirm      = trim($_POST['confirm_password'] ?? '');
 
-    if (!$email || !$password) {
-        $error = 'Please enter your email address and password.';
+    if (strlen($new_password) < 8) {
+        $error = 'Password must be at least 8 characters.';
+    } elseif ($new_password !== $confirm) {
+        $error = 'Passwords do not match.';
     } else {
-        $result = auth_attempt_login($email, $password);
+        $body = ['new_password' => $new_password];
 
-        switch ($result['state']) {
-            case 'logged_in':
-                $redirect = $next ?: portal_url($result['user']);
-                header('Location: ' . $redirect);
-                exit;
+        if ($token) {
+            $body['token'] = $token;
+        } else {
+            // must_change_password flow — re-supply current credentials
+            $current_password = trim($_POST['current_password'] ?? '');
+            if (!$current_password) {
+                $error = 'Please enter your current password.';
+            } else {
+                $body['email']            = $email;
+                $body['current_password'] = $current_password;
+            }
+        }
 
-            case 'must_change_password':
-                header('Location: /set-password.php');
-                exit;
+        if (!$error) {
+            $result = api_post('/password/set', $body, false);
 
-            case '2fa_required':
-                $redirect = '/2fa.php';
-                if ($next) $redirect .= '?next=' . urlencode($next);
-                header('Location: ' . $redirect);
-                exit;
-
-            default:
-                $error = $result['message'] ?? 'Invalid email or password.';
+            if ($result['ok']) {
+                $success = true;
+                unset($_SESSION['pending_email']);
+            } else {
+                $error = $result['data']['error'] ?? 'Could not set password. The link may be invalid or expired.';
+            }
         }
     }
 }
@@ -86,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — ephemeralREST</title>
+  <title>Set Password — ephemeralREST</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -99,6 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       --accent:  #2563ab;
       --error:   #b42424;
       --error-bg:#fef0f0;
+      --success: #2f7d3a;
+      --success-bg: #eef8ef;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -116,20 +132,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       -webkit-font-smoothing: antialiased;
       position: relative;
       overflow: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.4) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 50% 70%, rgba(200,168,75,.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,.3) 0%, transparent 100%),
-        radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,.35) 0%, transparent 100%),
-        radial-gradient(2px 2px at 40% 40%, rgba(255,255,255,.2) 0%, transparent 100%);
-      pointer-events: none;
     }
 
     body::after {
@@ -155,6 +157,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       gap: 10px;
       margin-bottom: 40px;
       text-decoration: none;
+      position: relative;
+      z-index: 1;
     }
 
     .login-brand__star { font-size: 22px; color: var(--gold); }
@@ -209,13 +213,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       margin-bottom: 18px;
     }
 
-    .access-denied {
-      background: #fef8ed;
-      border: 1px solid #f5dca8;
+    .success-box {
+      background: var(--success-bg);
+      border: 1px solid #b9e3bf;
       border-radius: 6px;
       padding: 11px 14px;
       font-size: 13.5px;
-      color: #92560a;
+      color: var(--success);
       margin-bottom: 18px;
     }
 
@@ -232,7 +236,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       color: var(--ink, #e4e1da);
     }
 
-    input[type="email"],
     input[type="password"] {
       width: 100%;
       padding: 10px 14px;
@@ -271,27 +274,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .btn-submit:hover { background: #3a7bbf; }
 
-    .login-links {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding-top: 16px;
-      border-top: 1px solid #2e2e2c;
-    }
-
-    .login-link {
-      font-size: 13px;
-      color: #8a8a84;
-      text-decoration: none;
-      display: flex;
-      justify-content: space-between;
-      padding: 7px 0;
-    }
-
-    .login-link:hover { color: var(--accent); }
-
-    .login-link__arrow { opacity: .4; }
-
     .back-link {
       margin-top: 32px;
       font-size: 13px;
@@ -314,58 +296,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="login-box">
   <div class="login-box__head">
-    <h1 class="login-box__title">Sign in</h1>
-    <p class="login-box__desc">Enter your email and password to access your portal.</p>
+    <h1 class="login-box__title"><?= $success ? 'Password set' : 'Set your password' ?></h1>
+    <p class="login-box__desc">
+      <?php if ($success): ?>
+        Your password has been updated. You can now sign in.
+      <?php elseif ($is_must_change): ?>
+        Your account requires a new password before you can continue.
+      <?php else: ?>
+        Choose a password for your account. It must be at least 8 characters.
+      <?php endif; ?>
+    </p>
   </div>
 
   <div class="login-box__body">
 
-    <?php if ($access_denied): ?>
-      <div class="access-denied">Your account doesn't have permission to access that area.</div>
-    <?php endif; ?>
+    <?php if ($success): ?>
 
-    <?php if ($error): ?>
-      <div class="error-box"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
+      <a href="/login.php" class="btn-submit" style="display:block; text-align:center; text-decoration:none; box-sizing:border-box;">
+        Continue to sign in →
+      </a>
 
-    <form method="POST">
-      <?php if ($next): ?>
-        <input type="hidden" name="next" value="<?= htmlspecialchars($next) ?>">
+    <?php else: ?>
+
+      <?php if ($error): ?>
+        <div class="error-box"><?= htmlspecialchars($error) ?></div>
       <?php endif; ?>
 
-      <div class="form-group">
-        <label for="email">Email address</label>
-        <input type="email" id="email" name="email"
-               placeholder="you@example.com"
-               autocomplete="username"
-               autofocus required>
-      </div>
+      <form method="POST">
+        <?php if ($token): ?>
+          <input type="hidden" name="t" value="<?= htmlspecialchars($token) ?>">
+        <?php endif; ?>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password"
-               placeholder="••••••••"
-               autocomplete="current-password"
-               required>
-      </div>
+        <?php if ($is_must_change): ?>
+          <div class="form-group">
+            <label for="current_password">Current password</label>
+            <input type="password" id="current_password" name="current_password"
+                   autocomplete="current-password" required>
+          </div>
+        <?php endif; ?>
 
-      <button type="submit" class="btn-submit">Sign In →</button>
+        <div class="form-group">
+          <label for="new_password">New password</label>
+          <input type="password" id="new_password" name="new_password"
+                 autocomplete="new-password" minlength="8" required>
+          <span class="hint">At least 8 characters.</span>
+        </div>
 
-      <div class="login-links">
-        <a href="/forgot-password.php" class="login-link">
-          <span>Forgot your password?</span>
-          <span class="login-link__arrow">→</span>
-        </a>
-        <a href="/register-user.php" class="login-link">
-          <span>Create an account</span>
-          <span class="login-link__arrow">→</span>
-        </a>
-      </div>
-    </form>
+        <div class="form-group">
+          <label for="confirm_password">Confirm new password</label>
+          <input type="password" id="confirm_password" name="confirm_password"
+                 autocomplete="new-password" minlength="8" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Set Password →</button>
+      </form>
+
+    <?php endif; ?>
+
   </div>
 </div>
 
-<a href="/landing.php" class="back-link">← Back to home</a>
+<a href="/login.php" class="back-link">← Back to sign in</a>
 
 </body>
 </html>
