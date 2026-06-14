@@ -29,7 +29,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 define('API_BASE',      'http://localhost:5000');
-define('ADMIN_API_KEY', 'ValmHbEInrg91NDiH53v9Cu2LW8xc6ILM1R73gXgggZ');
+define('ADMIN_API_KEY', '');
 define('SITE_NAME',     'ephemeralREST');
 define('SITE_VERSION',  '1.0');
 
