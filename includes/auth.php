@@ -345,3 +345,16 @@ function my_api_post(string $endpoint, array $body = []): array
     curl_close($ch);
     return ['ok' => $status >= 200 && $status < 300, 'status' => $status, 'data' => json_decode($raw, true) ?? []];
 }
+
+function my_api_put(string $endpoint, array $body = []): array
+{
+    $url     = API_BASE . $endpoint;
+    $headers = ['Content-Type: application/json', 'X-API-Key: ' . auth_key()];
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_CUSTOMREQUEST => 'PUT', CURLOPT_POSTFIELDS => json_encode($body), CURLOPT_TIMEOUT => 10]);
+    $raw    = curl_exec($ch);
+    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return ['ok' => $status >= 200 && $status < 300, 'status' => $status, 'data' => json_decode($raw, true) ?? []];
+}

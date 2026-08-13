@@ -79,13 +79,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'grant-service') {
+        // Accept one or more service names, comma- or whitespace-separated,
+        // so a single form submission can grant several at once (matches
+        // key_manager.py's repeatable --service flag).
+        $raw      = trim($_POST['service'] ?? '');
+        $services = array_values(array_filter(array_map('trim', preg_split('/[,\s]+/', $raw))));
+
+        if (!$services) {
+            flash_set('error', 'Enter at least one service name.');
+        } else {
+            $result = my_api_post("/admin/keys/{$key_id}/services", ['services' => $services]);
+            flash_set($result['ok'] ? 'success' : 'error', $result['ok']
+                ? 'Granted access to: ' . implode(', ', $services) . '.'
+                : ($result['data']['error'] ?? 'Grant failed.'));
+        }
+    }
+
+    if ($action === 'revoke-service') {
+        $service = trim($_POST['service'] ?? '');
+        if ($service === '') {
+            flash_set('error', 'Service name is required.');
+        } else {
+            $result = my_api_post("/admin/keys/{$key_id}/services/revoke", ['services' => [$service]]);
+            flash_set($result['ok'] ? 'success' : 'error', $result['ok']
+                ? "Revoked access to '{$service}'."
+                : ($result['data']['error'] ?? 'Revoke failed.'));
+        }
+    }
+
     header("Location: /key-detail.php?id={$key_id}");
     exit;
 }
 
 // Fetch key details
-$result = my_api_get("/admin/keys/{$key_id}");
-$key    = $result['ok'] ? ($result['data'] ?? []) : [];
+$result   = my_api_get("/admin/keys/{$key_id}");
+$key      = $result['ok'] ? ($result['data'] ?? []) : [];
+$services = $key['services'] ?? [];
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -250,6 +280,52 @@ require_once __DIR__ . '/includes/header.php';
               Clear
             </button>
           <?php endif; ?>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Federated service access -->
+  <div class="card" style="margin-top:16px; max-width:520px;">
+    <div class="card__head"><span class="card__title">Federated Service Access</span></div>
+    <div class="card__body">
+      <p style="font-size:13px; color:var(--ink-light); margin-bottom:16px;">
+        Grant this key access to companion services that check ephemeral.rest's
+        shared authentication data directly. Service names are free text —
+        use whatever name the companion service itself expects.
+      </p>
+
+      <?php if ($services): ?>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+          <?php foreach ($services as $svc): ?>
+            <span class="badge badge--blue" style="display:inline-flex; align-items:center; gap:6px; padding:4px 6px 4px 10px;">
+              <?= htmlspecialchars($svc) ?>
+              <form method="POST" style="display:inline; line-height:0;">
+                <input type="hidden" name="action"  value="revoke-service">
+                <input type="hidden" name="service" value="<?= htmlspecialchars($svc) ?>">
+                <button type="submit"
+                        title="Revoke '<?= htmlspecialchars($svc) ?>'"
+                        data-confirm="Revoke '<?= htmlspecialchars($svc) ?>' access for '<?= htmlspecialchars($key['identifier'] ?? '') ?>'?"
+                        style="background:none; border:none; cursor:pointer; color:inherit; font-size:14px; line-height:1; padding:0;">
+                  &times;
+                </button>
+              </form>
+            </span>
+          <?php endforeach; ?>
+        </div>
+      <?php else: ?>
+        <p style="font-size:13px; color:var(--ink-faint); margin-bottom:16px;">No service access granted.</p>
+      <?php endif; ?>
+
+      <form method="POST">
+        <input type="hidden" name="action" value="grant-service">
+        <div class="form-group">
+          <label for="new_service">Grant access to</label>
+          <input type="text" id="new_service" name="service" placeholder="e.g. my-companion-app">
+          <span class="form-hint">One service, or several separated by commas or spaces.</span>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary btn--sm">Grant</button>
         </div>
       </form>
     </div>

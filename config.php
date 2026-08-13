@@ -28,7 +28,12 @@
 // ephemeralADMIN — Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 
-define('API_BASE',      'http://localhost:5000');
+// API_BASE can be overridden via the API_BASE environment variable (used by
+// the Docker Compose setup, where it points at the ephemeral-rest service
+// name rather than localhost). Bare-metal deployments that edit this file
+// directly, per DOCS/SETUP.md, are unaffected — the literal value below is
+// simply the fallback when no environment variable is set.
+define('API_BASE',      getenv('API_BASE') ?: 'http://localhost:5000');
 define('ADMIN_API_KEY', '');
 define('SITE_NAME',     'ephemeralREST');
 define('SITE_VERSION',  '1.0');
