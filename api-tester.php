@@ -492,7 +492,7 @@ function _endpoint_list(): array {
             'method'      => 'POST',
             'label'       => 'Resolve Location',
             'desc'        => 'Resolve a place name to its canonical record with coordinates and timezone.',
-            'auth'        => false,
+            'auth'        => true,
             'path_params' => [],
             'params'      => [],
             'body'        => [
@@ -559,7 +559,7 @@ require_once __DIR__ . '/includes/header.php';
     <h1 class="page-title">API Tester</h1>
     <p class="page-subtitle">Run ephemeralREST endpoints and inspect responses</p>
   </div>
-  <span class="mono" style="font-size:13px; color:var(--ink-faint);"><?= htmlspecialchars(API_BASE) ?></span>
+  <span class="mono" style="font-size:13px; color:var(--ink-faint);"><?= htmlspecialchars(API_PUBLIC_URL) ?></span>
 </div>
 
 <div class="two-col" style="align-items:start; gap:24px;">
@@ -712,7 +712,7 @@ require_once __DIR__ . '/includes/header.php';
 
     <!-- Running indicator -->
     <div id="running-indicator" style="display:none; text-align:center; padding:32px; color:var(--ink-faint); font-size:13px;">
-      Calling <?= htmlspecialchars(API_BASE) ?><span id="running-path"></span>…
+      Calling <?= htmlspecialchars(API_PUBLIC_URL) ?><span id="running-path"></span>…
     </div>
 
   </div>
@@ -939,7 +939,7 @@ function updateUrlDisplay() {
   const qs = Object.keys(queryParams).length
     ? '?' + Object.entries(queryParams).map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&')
     : '';
-  document.getElementById('req-url').textContent = '<?= htmlspecialchars(API_BASE) ?>' + resolvedPath + qs;
+  document.getElementById('req-url').textContent = '<?= htmlspecialchars(API_PUBLIC_URL) ?>' + resolvedPath + qs;
 }
 
 function collectPathParams() {

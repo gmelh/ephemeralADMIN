@@ -24,15 +24,20 @@
  * THE SOFTWARE.
  */
 -->
+<?php
+if (!defined('API_BASE')) require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/api.php';
+$site_name = site_name_public();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ephemeralREST — Swiss Ephemeris REST API</title>
+  <title><?= htmlspecialchars($site_name) ?> — Swiss Ephemeris REST API</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --ink:        #1a1a18;
@@ -84,7 +89,7 @@
     }
 
     .nav__star  { font-size: 18px; color: var(--gold); }
-    .nav__name  { font-family: 'Instrument Serif', serif; font-size: 18px; letter-spacing: .01em; }
+    .nav__name  { font-family: 'Instrument Sans', sans-serif; font-size: 18px; letter-spacing: .01em; }
 
     .nav__links { display: flex; gap: 8px; align-items: center; }
 
@@ -169,7 +174,7 @@
     }
 
     .hero__title {
-      font-family: 'Instrument Serif', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: clamp(44px, 7vw, 84px);
       font-weight: 400;
       color: #f5f2ec;
@@ -314,7 +319,7 @@
     }
 
     .section__title {
-      font-family: 'Instrument Serif', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: clamp(30px, 4vw, 46px);
       font-weight: 400;
       line-height: 1.15;
@@ -458,7 +463,7 @@
     }
 
     .portal-section__title {
-      font-family: 'Instrument Serif', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: 40px;
       font-weight: 400;
       color: #f5f2ec;
@@ -506,7 +511,7 @@
     }
 
     .portal-card__title {
-      font-family: 'Instrument Serif', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: 22px;
       color: #f0ede8;
     }
@@ -640,7 +645,7 @@
     }
 
     .footer__brand-name {
-      font-family: 'Instrument Serif', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: 18px;
       color: #f0ede8;
     }
@@ -718,7 +723,7 @@
 <nav class="nav">
   <div class="nav__brand">
     <span class="nav__star">✦</span>
-    <span class="nav__name">ephemeralREST</span>
+    <span class="nav__name"><?= htmlspecialchars($site_name) ?></span>
   </div>
   <div class="nav__links">
     <a href="#features" class="nav__link">Features</a>
@@ -947,7 +952,7 @@
       <!-- Left: copy -->
       <div>
         <p class="portal-section__label" style="margin-bottom:16px;">API Access</p>
-        <h2 style="font-family:'Instrument Serif', serif; font-size:clamp(28px,4vw,44px); font-weight:400; color:#f5f2ec; line-height:1.15; margin-bottom:24px;">
+        <h2 style="font-family:'Instrument Sans', sans-serif; font-size:clamp(28px,4vw,44px); font-weight:400; color:#f5f2ec; line-height:1.15; margin-bottom:24px;">
           One key.<br>Everything unlocked.
         </h2>
         <p style="font-size:16px; color:rgba(255,255,255,.5); line-height:1.7; margin-bottom:20px;">
@@ -1116,7 +1121,7 @@
     <div>
       <div class="footer__brand">
         <span style="color:var(--gold); font-size:18px;">✦</span>
-        <span class="footer__brand-name">ephemeralREST</span>
+        <span class="footer__brand-name"><?= htmlspecialchars($site_name) ?></span>
       </div>
       <p class="footer__tagline">
         Open source astronomical calculation API. AGPL v3 licensed, Swiss Ephemeris powered, free to use.

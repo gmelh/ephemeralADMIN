@@ -44,6 +44,7 @@ $admin_nav = [
     'portal-admin'    => ['label' => 'Dashboard',      'icon' => '◈', 'section' => 'Admin'],
     'keys'            => ['label' => 'Keys',            'icon' => '◆', 'section' => null],
     'class-limits'    => ['label' => 'Rate Limits',     'icon' => '⊟', 'section' => null],
+    'federated-services' => ['label' => 'Federated Services', 'icon' => '⇄', 'section' => null],
     'smtp'             => ['label' => 'SMTP Settings',    'icon' => '✉', 'section' => null],
     'email-templates'  => ['label' => 'Email Templates',  'icon' => '✎', 'section' => null],
     'portal-settings'  => ['label' => 'Portal Settings',  'icon' => '⚙', 'section' => null],
@@ -66,7 +67,7 @@ $nav = $is_admin ? $admin_nav : $user_nav;
   <title><?= htmlspecialchars($page_title ?? portal_setting('site_name')) ?> — <?= portal_setting('site_name') ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/style.css">
   <style>
     /* ── Mobile nav ─────────────────────────────────────── */
@@ -268,4 +269,3 @@ $nav = $is_admin ? $admin_nav : $user_nav;
           <?= htmlspecialchars($flash['message']) ?>
         </div>
       <?php endif; ?>
-      

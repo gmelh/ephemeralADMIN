@@ -80,14 +80,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'grant-service') {
-        // Accept one or more service names, comma- or whitespace-separated,
-        // so a single form submission can grant several at once (matches
-        // key_manager.py's repeatable --service flag).
-        $raw      = trim($_POST['service'] ?? '');
-        $services = array_values(array_filter(array_map('trim', preg_split('/[,\s]+/', $raw))));
+        // Checkboxes from the registered-services list on this page —
+        // each checked value is already a known, registered slug.
+        $services = array_values(array_filter(array_map('trim', $_POST['grant_slugs'] ?? [])));
 
         if (!$services) {
-            flash_set('error', 'Enter at least one service name.');
+            flash_set('error', 'Select at least one service to grant.');
         } else {
             $result = my_api_post("/admin/keys/{$key_id}/services", ['services' => $services]);
             flash_set($result['ok'] ? 'success' : 'error', $result['ok']
@@ -116,6 +114,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $result   = my_api_get("/admin/keys/{$key_id}");
 $key      = $result['ok'] ? ($result['data'] ?? []) : [];
 $services = $key['services'] ?? [];
+
+// Registered federated services this key doesn't already have — the
+// checkbox list below only offers granting from the curated registry;
+// free-text/ad-hoc grants are still possible via key_manager.py or the
+// API directly, just not surfaced in the portal.
+$registry_result     = my_api_get('/admin/federated-services?active=1');
+$all_registered       = $registry_result['ok'] ? ($registry_result['data']['services'] ?? []) : [];
+$available_services   = array_values(array_filter(
+    $all_registered,
+    fn($s) => !in_array($s['slug'], $services, true)
+));
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -290,9 +299,10 @@ require_once __DIR__ . '/includes/header.php';
     <div class="card__head"><span class="card__title">Federated Service Access</span></div>
     <div class="card__body">
       <p style="font-size:13px; color:var(--ink-light); margin-bottom:16px;">
-        Grant this key access to companion services that check ephemeral.rest's
-        shared authentication data directly. Service names are free text —
-        use whatever name the companion service itself expects.
+        Grant this key access to registered companion services that check
+        ephemeral.rest's shared authentication data directly. Manage the
+        list of available services on the
+        <a href="/federated-services.php">Federated Services</a> page.
       </p>
 
       <?php if ($services): ?>
@@ -319,14 +329,35 @@ require_once __DIR__ . '/includes/header.php';
 
       <form method="POST">
         <input type="hidden" name="action" value="grant-service">
-        <div class="form-group">
-          <label for="new_service">Grant access to</label>
-          <input type="text" id="new_service" name="service" placeholder="e.g. my-companion-app">
-          <span class="form-hint">One service, or several separated by commas or spaces.</span>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn--primary btn--sm">Grant</button>
-        </div>
+        <?php if ($available_services): ?>
+          <div class="form-group">
+            <label>Grant access to</label>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+              <?php foreach ($available_services as $svc): ?>
+                <label style="display:flex; align-items:center; gap:8px; font-weight:400; font-size:13.5px;">
+                  <input type="checkbox" name="grant_slugs[]" value="<?= htmlspecialchars($svc['slug']) ?>" style="width:auto;">
+                  <span><strong><?= htmlspecialchars($svc['display_name']) ?></strong>
+                    <span style="color:var(--ink-light);"> — <?= htmlspecialchars($svc['slug']) ?></span>
+                    <?php if (!empty($svc['description'])): ?>
+                      <br><span style="color:var(--ink-light); font-size:12.5px;"><?= htmlspecialchars($svc['description']) ?></span>
+                    <?php endif; ?>
+                  </span>
+                </label>
+              <?php endforeach; ?>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary btn--sm">Grant Selected</button>
+          </div>
+        <?php else: ?>
+          <p style="font-size:13px; color:var(--ink-faint);">
+            <?= $all_registered
+                ? 'This key already has access to every registered service.'
+                : 'No services are registered yet.' ?>
+            Manage the registry on the
+            <a href="/federated-services.php">Federated Services</a> page.
+          </p>
+        <?php endif; ?>
       </form>
     </div>
   </div>

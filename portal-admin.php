@@ -67,7 +67,7 @@ require_once __DIR__ . '/includes/header.php';
   <div class="card__body">
     <?php if ($server_ok): ?>
       <dl class="detail-list">
-        <dt>Endpoint</dt><dd class="mono"><?= htmlspecialchars(API_BASE) ?></dd>
+        <dt>Endpoint</dt><dd class="mono"><?= htmlspecialchars(API_PUBLIC_URL) ?></dd>
         <?php if (!empty($health_data['timestamp'])): ?>
           <dt>Server time</dt><dd><?= htmlspecialchars($health_data['timestamp']) ?> UTC</dd>
         <?php endif; ?>

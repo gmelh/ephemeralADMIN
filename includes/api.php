@@ -154,6 +154,30 @@ function portal_setting(string $key, mixed $default = null): mixed
     return $settings[$key] ?? $default;
 }
 
+/**
+ * Site name for pre-login/public pages (landing.php) — the full
+ * portal_setting() family above deliberately never calls the API before
+ * login, so it can't be used here. Backed by the public GET /branding
+ * endpoint instead, which exposes only the site name and nothing else
+ * from portal_settings. Session-cached like portal_settings_get() is, so
+ * a visitor's session doesn't re-call the API on every page load.
+ */
+function site_name_public(): string
+{
+    if (session_status() === PHP_SESSION_NONE) session_start();
+
+    if (!empty($_SESSION['public_site_name'])) {
+        return $_SESSION['public_site_name'];
+    }
+
+    $default = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
+    $result  = api_get('/branding', false);
+    $name    = $result['ok'] ? trim((string)($result['data']['site_name'] ?? '')) : '';
+
+    $_SESSION['public_site_name'] = $name !== '' ? $name : $default;
+    return $_SESSION['public_site_name'];
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Utility helpers
 // ─────────────────────────────────────────────────────────────────────────────

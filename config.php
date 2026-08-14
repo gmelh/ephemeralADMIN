@@ -34,6 +34,21 @@
 // directly, per DOCS/SETUP.md, are unaffected — the literal value below is
 // simply the fallback when no environment variable is set.
 define('API_BASE',      getenv('API_BASE') ?: 'http://localhost:5000');
+
+// API_PUBLIC_URL is purely cosmetic — it's what gets *shown* to an admin
+// (the Dashboard's "Endpoint" field, the API Tester's "Calling..." text),
+// as distinct from API_BASE, which is what the portal actually connects
+// to under the hood. These are usually the same on a bare-metal install,
+// but under Docker Compose, API_BASE is deliberately the internal
+// container network address (e.g. http://ephemeral-rest:5000 — fast,
+// stays inside the Docker network, never touches nginx/TLS), which is
+// correct for the portal's own requests but meaningless to a human
+// reading the dashboard. Set API_PUBLIC_URL to your real, public API
+// domain (e.g. https://api.yourdomain.com) so the portal *displays* that
+// instead, without changing which address it actually calls. Falls back
+// to API_BASE if unset, so nothing changes unless you set this.
+define('API_PUBLIC_URL', getenv('API_PUBLIC_URL') ?: API_BASE);
+
 define('ADMIN_API_KEY', '');
 define('SITE_NAME',     'ephemeralREST');
 define('SITE_VERSION',  '1.0');
