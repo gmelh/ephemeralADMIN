@@ -787,7 +787,7 @@ require_once __DIR__ . '/includes/header.php';
 /* JSON syntax highlighting */
 .json-key  { color: #2563ab; }
 .json-str  { color: #1e7b4b; }
-.json-num  { color: #c8a84b; }
+.json-num  { color: #ffd700; }
 .json-bool { color: #7c3aed; }
 .json-null { color: #9ca3af; }
 </style>

@@ -3,29 +3,33 @@
    ───────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Core dark palette */
-  --bg:           #1c1c1a;
-  --bg-alt:       #222220;
-  --surface:      #272725;
-  --surface-alt:  #2e2e2b;
-  --border:       #2e2e2c;
-  --border-strong:#3d3d3a;
+  /* Core dark palette — navy-slate, matching the dials workspace styling */
+  --bg:           #1a202c;
+  --bg-alt:       #202632;
+  --surface:      #2d3748;
+  --surface-alt:  #343e4e;
+  --border:       rgba(255,255,255,.08);
+  --border-strong:rgba(255,255,255,.16);
 
-  /* Text */
-  --ink:          #e4e1da;
-  --ink-light:    #8a8a84;
-  --ink-faint:    #525250;
+  /* Text — cooler off-whites to sit correctly against the navy background */
+  --ink:          #e2e5ea;
+  --ink-light:    #8b95a8;
+  --ink-faint:    #565f70;
 
   /* Sidebar */
-  --sidebar-bg:   #111110;
-  --sidebar-ink:  #c8c5be;
-  --sidebar-faint:#525250;
+  --sidebar-bg:   #0f1522;
+  --sidebar-ink:  #c5cad4;
+  --sidebar-faint:#565f70;
 
-  /* Accent */
-  --accent:       #4f8fd4;
-  --accent-light: rgba(79,143,212,.12);
-  --gold:         #c8a84b;
-  --gold-light:   rgba(200,168,75,.12);
+  /* Accent — blue is now the primary/button colour (matches the dials
+     workspace's own button treatment); gold is reserved for emphasis and
+     highlights only, matching how the dials workspace actually uses it
+     (never on buttons there). */
+  --accent:       #0066cc;
+  --accent-dark:  #0052a3;
+  --accent-light: rgba(0,102,204,.12);
+  --gold:         #ffd700;
+  --gold-light:   rgba(255,215,0,.12);
 
   /* States */
   --success:      #4caf80;
@@ -137,7 +141,7 @@ a:hover { text-decoration: underline; }
 }
 
 .sidebar__user-badge--admin {
-  background: rgba(200,168,75,.15);
+  background: rgba(255,215,0,.15);
   color: var(--gold);
 }
 
@@ -274,7 +278,7 @@ a:hover { text-decoration: underline; }
 .flash--success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(76,175,128,.25); }
 .flash--error   { background: var(--error-bg);   color: var(--error);   border: 1px solid rgba(212,96,96,.25); }
 .flash--warning { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(212,148,58,.25); }
-.flash--info    { background: var(--accent-light);color: var(--accent);  border: 1px solid rgba(79,143,212,.25); }
+.flash--info    { background: var(--accent-light);color: var(--accent);  border: 1px solid rgba(0,102,204,.25); }
 
 /* ── Stats row ── */
 .stats {
@@ -407,11 +411,11 @@ td.mono { font-family: var(--font-mono); font-size: 12px; }
 }
 
 .btn--primary {
-  background: var(--gold);
-  color: #131312;
-  border-color: var(--gold);
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
 }
-.btn--primary:hover { background: #b8983a; text-decoration: none; color: #131312; }
+.btn--primary:hover { background: var(--accent-dark); text-decoration: none; color: #ffffff; }
 
 .btn--secondary {
   background: var(--surface-alt);
@@ -477,7 +481,7 @@ select {
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(79,143,212,.15);
+  box-shadow: 0 0 0 3px rgba(0,102,204,.15);
 }
 
 textarea { resize: vertical; min-height: 90px; }
@@ -537,7 +541,7 @@ textarea { resize: vertical; min-height: 90px; }
   font-size: 13.5px;
   margin-bottom: 20px;
 }
-.alert--info    { background: var(--accent-light); color: var(--accent); border: 1px solid rgba(79,143,212,.2); }
+.alert--info    { background: var(--accent-light); color: var(--accent); border: 1px solid rgba(0,102,204,.2); }
 .alert--success { background: var(--success-bg);   color: var(--success); border: 1px solid rgba(76,175,128,.2); }
 .alert--warning { background: var(--warning-bg);   color: var(--warning); border: 1px solid rgba(212,148,58,.2); }
 
@@ -771,7 +775,7 @@ code {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #b8983a;
+  background: #d8b600;
 }
 
 ::-webkit-scrollbar-corner {

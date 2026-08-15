@@ -28,6 +28,42 @@
 // ephemeralADMIN — Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Minimal .env loader — PHP has no built-in equivalent to Python's
+// python-dotenv, and this project has no Composer dependencies to pull one
+// in, so this is a small hand-rolled one. Only fills in values that aren't
+// already set by the real environment, so Docker Compose's `environment:`
+// block (or Apache/PHP-FPM env config) always takes precedence — this file
+// is a fallback for bare-metal installs, not an override mechanism. Safe
+// to call even when .env doesn't exist (e.g. every Docker deployment,
+// which sets real environment variables directly and has no use for this
+// file at all) — it just does nothing in that case.
+(function () {
+    $path = __DIR__ . '/.env';
+    if (!is_file($path) || !is_readable($path)) return;
+
+    foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#') continue;
+        if (strpos($line, '=') === false) continue;
+
+        [$key, $value] = explode('=', $line, 2);
+        $key   = trim($key);
+        $value = trim($value);
+
+        // Strip matching surrounding quotes, if present
+        if (strlen($value) >= 2) {
+            $first = $value[0];
+            $last  = $value[strlen($value) - 1];
+            if (($first === '"' && $last === '"') || ($first === "'" && $last === "'")) {
+                $value = substr($value, 1, -1);
+            }
+        }
+
+        if ($key === '' || getenv($key) !== false) continue; // never override a real env var
+        putenv("{$key}={$value}");
+    }
+})();
+
 // API_BASE can be overridden via the API_BASE environment variable (used by
 // the Docker Compose setup, where it points at the ephemeral-rest service
 // name rather than localhost). Bare-metal deployments that edit this file
@@ -49,31 +85,34 @@ define('API_BASE',      getenv('API_BASE') ?: 'http://localhost:5000');
 // to API_BASE if unset, so nothing changes unless you set this.
 define('API_PUBLIC_URL', getenv('API_PUBLIC_URL') ?: API_BASE);
 
-define('ADMIN_API_KEY', '');
-define('SITE_NAME',     'ephemeralREST');
-define('SITE_VERSION',  '1.0');
+define('SITE_NAME',     getenv('SITE_NAME') ?: 'ephemeralREST');
 
-// Session timeout in seconds (30 minutes)
-define('SESSION_TIMEOUT', 1800);
+// Fallback version string shown in the sidebar footer — the API doesn't
+// have a concept of "portal version" (it's about this codebase, not the
+// astrology calculation service), so this stays purely local, unlike the
+// settings below that mirror an API-side config value.
+define('SITE_VERSION',  getenv('SITE_VERSION') ?: '1.0');
 
-// Allow administrators to grant or revoke admin access on other keys.
-// Set to false to lock down admin promotion entirely — useful once your
-// admin keys are established and you don't want the portal to be able
-// to create new admins.
-define('ALLOW_ADMIN_PROMOTION', true);
+// Session timeout in seconds (30 minutes). Purely a portal concept — the
+// API has no equivalent, since it's not a stateful browser session.
+define('SESSION_TIMEOUT', (int)(getenv('SESSION_TIMEOUT') ?: 1800));
+
+// Allow administrators to grant or revoke admin access on other keys via
+// the portal's Keys page. Set to false to lock down admin promotion
+// entirely — useful once your admin keys are established. Also enforced
+// server-side by the API's own ALLOW_ADMIN_PROMOTION setting (see
+// ephemeralREST's .env) — set both together; this one only controls
+// whether the portal's UI offers the option at all, the API's is what
+// actually stops the request if someone bypasses the UI.
+$_allow_admin_promotion_env = getenv('ALLOW_ADMIN_PROMOTION');
+define('ALLOW_ADMIN_PROMOTION', $_allow_admin_promotion_env === false
+    ? true
+    : !in_array(strtolower(trim($_allow_admin_promotion_env)), ['false', '0', 'no', ''], true));
 
 // URL to redirect to after logout.
 // Use a relative path (e.g. '/landing.php') to stay on this server,
 // or a full URL (e.g. 'https://myapp.com') to redirect elsewhere.
-define('LOGOUT_REDIRECT_URL', '/login.php');
-
-// Number of days a "remember this device" cookie remains valid, allowing
-// login to skip the 2FA email step on recognised machines. This should
-// normally match the API's TRUSTED_DEVICE_DAYS setting — the API is the
-// final authority on token expiry, but the cookie's Max-Age should agree
-// with it so the cookie doesn't outlive (or disappear long before) the
-// token it represents.
-define('TRUSTED_DEVICE_COOKIE_DAYS', 28);
+define('LOGOUT_REDIRECT_URL', getenv('LOGOUT_REDIRECT_URL') ?: '/login.php');
 
 // Timezone for displaying dates
 date_default_timezone_set('UTC');

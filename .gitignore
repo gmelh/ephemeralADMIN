@@ -1,0 +1,12 @@
+# Real environment config — never commit this, even though nothing in it
+# is a secret today (API_BASE, SITE_NAME, etc.) — it can reveal internal
+# infrastructure details, and .env.example is what belongs in the repo.
+.env
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/

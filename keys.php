@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
         exit;
     }
 
-    if ($action === 'set-admin' && portal_setting('allow_admin_promotion', true)) {
+    if ($action === 'set-admin' && ALLOW_ADMIN_PROMOTION) {
         $grant  = (bool)($input['admin'] ?? false);
         $result = my_api_post("/admin/keys/{$key_id}/set-admin", ['admin' => $grant]);
         echo json_encode($result['ok']
@@ -264,7 +264,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
       </div>
 
-      <?php if (portal_setting('allow_admin_promotion', true)): ?>
+      <?php if (ALLOW_ADMIN_PROMOTION): ?>
       <!-- Admin Access -->
       <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;">
         <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px;">Admin Access</p>

@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register — ephemeralREST</title>
+  <title>Register — <?= htmlspecialchars(site_name_public()) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .reg-brand h1 {
-      font-family: var(--font-serif);
+      font-family: var(--font-heading);
       font-size: 26px;
       font-weight: 400;
       color: var(--ink);
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="reg-wrap">
 
   <div class="reg-brand">
-    <h1>ephemeralREST</h1>
+    <h1><?= htmlspecialchars(site_name_public()) ?></h1>
     <p>Create your account</p>
   </div>
 
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="card" style="max-width:520px; margin:0 auto; text-align:center;">
       <div class="card__body" style="padding:40px 32px;">
         <div style="font-size:40px; margin-bottom:16px;">&#x2709;</div>
-        <h2 style="font-family:var(--font-serif); font-size:24px; font-weight:400; margin-bottom:12px;">
+        <h2 style="font-family:var(--font-heading); font-size:24px; font-weight:400; margin-bottom:12px;">
           Check Your Email
         </h2>
         <p style="font-size:14px; color:var(--ink-light); margin-bottom:8px;">

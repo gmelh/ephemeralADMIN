@@ -86,16 +86,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — ephemeralREST</title>
+  <title>Sign In — <?= htmlspecialchars(site_name_public()) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ink:     #e4e1da;
+      --ink:     #e2e5ea;
       --border:  #2e2e2c;
       --dark:    #0e0e0d;
-      --gold:    #c8a84b;
+      --gold:    #ffd700;
       --accent:  #2563ab;
       --error:   #b42424;
       --error-bg:#fef0f0;
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       background-image:
         radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.5) 0%, transparent 100%),
         radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.4) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 50% 70%, rgba(200,168,75,.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 70%, rgba(255,215,0,.5) 0%, transparent 100%),
         radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,.3) 0%, transparent 100%),
         radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,.35) 0%, transparent 100%),
         radial-gradient(2px 2px at 40% 40%, rgba(255,255,255,.2) 0%, transparent 100%);
@@ -141,9 +141,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       left: 50%;
       transform: translate(-50%, -50%);
       background: radial-gradient(ellipse at center,
-        rgba(79, 143, 212, .55)  0%,
-        rgba(79, 143, 212, .28) 18%,
-        rgba(79, 143, 212, .08) 32%,
+        rgba(0,102,204, .55)  0%,
+        rgba(0,102,204, .28) 18%,
+        rgba(0,102,204, .08) 32%,
         transparent             44%
       );
       pointer-events: none;
@@ -185,13 +185,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       font-family: 'Instrument Serif', serif;
       font-size: 24px;
       font-weight: 400;
-      color: var(--ink, #e4e1da);
+      color: var(--ink, #e2e5ea);
       margin-bottom: 6px;
     }
 
     .login-box__desc {
       font-size: 13.5px;
-      color: #8a8a84;
+      color: #8b95a8;
       line-height: 1.5;
     }
 
@@ -229,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     label {
       font-size: 13px;
       font-weight: 500;
-      color: var(--ink, #e4e1da);
+      color: var(--ink, #e2e5ea);
     }
 
     input[type="email"],
@@ -240,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       border-radius: 6px;
       font-family: 'DM Mono', monospace;
       font-size: 13px;
-      color: var(--ink, #e4e1da);
+      color: var(--ink, #e2e5ea);
       background: var(--surface, #1f1f1d);
       transition: border-color .15s, box-shadow .15s;
       letter-spacing: .02em;
@@ -252,12 +252,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       box-shadow: 0 0 0 3px rgba(37,99,171,.1);
     }
 
-    .hint { font-size: 12px; color: #525250; }
+    .hint { font-size: 12px; color: #565f70; }
 
     .btn-submit {
       width: 100%;
       padding: 11px 24px;
-      background: #4f8fd4;
+      background: #0066cc;
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -281,7 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .login-link {
       font-size: 13px;
-      color: #8a8a84;
+      color: #8b95a8;
       text-decoration: none;
       display: flex;
       justify-content: space-between;
@@ -309,7 +309,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <a href="/landing.php" class="login-brand">
   <span class="login-brand__star">✦</span>
-  <span class="login-brand__name">ephemeralREST</span>
+  <span class="login-brand__name"><?= htmlspecialchars(site_name_public()) ?></span>
 </a>
 
 <div class="login-box">

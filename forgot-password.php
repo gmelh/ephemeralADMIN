@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
+$site_name = site_name_public();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -76,9 +76,9 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ink:     #e4e1da;
+      --ink:     #e2e5ea;
       --border:  #2e2e2c;
-      --gold:    #c8a84b;
+      --gold:    #ffd700;
       --accent:  #2563ab;
       --error:   #b42424;
       --error-bg:#fef0f0;
@@ -108,7 +108,7 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
       background-image:
         radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.5) 0%, transparent 100%),
         radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.4) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 50% 70%, rgba(200,168,75,.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 70%, rgba(255,215,0,.5) 0%, transparent 100%),
         radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,.3) 0%, transparent 100%),
         radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,.35) 0%, transparent 100%);
       pointer-events: none;
@@ -122,9 +122,9 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       background: radial-gradient(ellipse at center,
-        rgba(79, 143, 212, .55)  0%,
-        rgba(79, 143, 212, .28) 18%,
-        rgba(79, 143, 212, .08) 32%,
+        rgba(0,102,204, .55)  0%,
+        rgba(0,102,204, .28) 18%,
+        rgba(0,102,204, .08) 32%,
         transparent             44%
       );
       pointer-events: none;
@@ -173,7 +173,7 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
 
     .login-box__desc {
       font-size: 13.5px;
-      color: #8a8a84;
+      color: #8b95a8;
       line-height: 1.55;
     }
 
@@ -234,7 +234,7 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
     .btn-submit {
       width: 100%;
       padding: 11px 24px;
-      background: #4f8fd4;
+      background: #0066cc;
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -258,7 +258,7 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
 
     .login-link {
       font-size: 13px;
-      color: #8a8a84;
+      color: #8b95a8;
       text-decoration: none;
       display: flex;
       justify-content: space-between;

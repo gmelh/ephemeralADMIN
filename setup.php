@@ -91,15 +91,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Setup — <?= htmlspecialchars(defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST') ?></title>
+  <title>Setup — <?= htmlspecialchars(site_name_public()) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ink:      #e4e1da;
+      --ink:      #e2e5ea;
       --border:   #2e2e2c;
-      --gold:     #c8a84b;
+      --gold:     #ffd700;
       --accent:   #2563ab;
       --error:    #b42424;
       --error-bg: #fef0f0;
@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       background-image:
         radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.5) 0%, transparent 100%),
         radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.4) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 50% 70%, rgba(200,168,75,.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 70%, rgba(255,215,0,.5) 0%, transparent 100%),
         radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,.3) 0%, transparent 100%),
         radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,.35) 0%, transparent 100%),
         radial-gradient(2px 2px at 40% 40%, rgba(255,255,255,.2) 0%, transparent 100%);
@@ -146,9 +146,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       left: 50%;
       transform: translate(-50%, -50%);
       background: radial-gradient(ellipse at center,
-        rgba(200, 168, 75, .35)  0%,
-        rgba(200, 168, 75, .12) 18%,
-        rgba(200, 168, 75, .03) 32%,
+        rgba(255,215,0, .35)  0%,
+        rgba(255,215,0, .12) 18%,
+        rgba(255,215,0, .03) 32%,
         transparent             44%
       );
       pointer-events: none;
@@ -207,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .setup-box__desc {
       font-size: 13.5px;
-      color: #8a8a84;
+      color: #8b95a8;
       line-height: 1.55;
     }
 
@@ -256,24 +256,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       box-shadow: 0 0 0 3px rgba(37,99,171,.1);
     }
 
-    .hint { font-size: 12px; color: #525250; }
+    .hint { font-size: 12px; color: #565f70; }
 
     .btn-submit {
       width: 100%;
       padding: 11px 24px;
-      background: #c8a84b;
-      color: #0e0e0d;
+      background: #0066cc;
+      color: #fff;
       border: none;
       border-radius: 6px;
       font-family: 'Jost', sans-serif;
       font-size: 14.5px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
       transition: background .15s;
       margin-top: 4px;
     }
 
-    .btn-submit:hover { background: #d4b55a; }
+    .btn-submit:hover { background: #3a7bbf; }
 
     /* Success state */
     .key-display {
@@ -307,7 +307,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       padding: 12px 16px;
       font-family: 'DM Mono', monospace;
       font-size: 12px;
-      color: #8a8a84;
+      color: #8b95a8;
       word-break: break-all;
       line-height: 1.7;
       margin-bottom: 20px;
@@ -319,7 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       display: block;
       width: 100%;
       padding: 11px 24px;
-      background: #4f8fd4;
+      background: #0066cc;
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -339,7 +339,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="setup-brand">
   <span class="setup-brand__star">✦</span>
-  <span class="setup-brand__name"><?= htmlspecialchars(defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST') ?></span>
+  <span class="setup-brand__name"><?= htmlspecialchars(site_name_public()) ?></span>
 </div>
 
 <div class="setup-step">First-time setup</div>
@@ -365,10 +365,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         Save it somewhere secure before continuing.
       </div>
 
-      <p style="font-size:13px; color:#8a8a84; margin-bottom:8px;">Your API key:</p>
+      <p style="font-size:13px; color:#8b95a8; margin-bottom:8px;">Your API key:</p>
       <div class="key-display"><?= htmlspecialchars($api_key) ?></div>
 
-      <p style="font-size:13px; color:#8a8a84; margin-bottom:16px;">
+      <p style="font-size:13px; color:#8b95a8; margin-bottom:16px;">
         Once you continue, configure SMTP from the portal settings so that
         future emails (2FA codes, user registration, password resets) are
         delivered automatically.

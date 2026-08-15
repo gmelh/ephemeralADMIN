@@ -69,11 +69,11 @@ require_once __DIR__ . '/includes/header.php';
   </div>
 </div>
 
-<div class="alert alert--info" style="max-width:640px; margin-bottom:24px;">
+<div class="alert alert--info" style="max-width:720px; margin-bottom:24px;">
   These are the fallback limits for every key. Individual keys can override any value on their detail page.
 </div>
 
-<div class="card" style="max-width:640px;">
+<div class="card" style="max-width:720px;">
   <div class="card__head"><span class="card__title">Current Defaults</span></div>
   <div class="card__body">
 

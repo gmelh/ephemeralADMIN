@@ -84,98 +84,66 @@ function api_delete(string $endpoint, bool $auth = true): array
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Portal settings
+// Public portal config
 // ─────────────────────────────────────────────────────────────────────────────
-// Settings are fetched from GET /admin/portal-settings and cached in the
-// PHP session for the duration of the session. Call portal_settings_reload()
-// after updating settings to refresh the cache.
+// site_name and trusted_device_days are config-only on the API side (see
+// ephemeralREST's .env — SITE_NAME, TRUSTED_DEVICE_DAYS), never editable
+// from within either portal. This fetches them from the public
+// GET /public-config endpoint, which works identically whether or not the
+// visitor is logged in — deliberately the single mechanism every page uses
+// (pre-login pages like login.php/2fa.php included), so there's no risk of
+// one code path showing a different value than another. Session-cached so
+// a visitor's session doesn't re-call the API on every page load.
 
 /**
- * Built-in defaults — used when the API is unreachable or the user is not
- * yet logged in (e.g. setup page, login page).
+ * Fetch and cache both public config values in one call.
  */
-function portal_settings_defaults(): array
+function public_portal_config(): array
 {
-    return [
+    if (session_status() === PHP_SESSION_NONE) session_start();
+
+    if (!empty($_SESSION['public_config'])) {
+        return $_SESSION['public_config'];
+    }
+
+    $defaults = [
         'site_name'             => defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST',
-        'site_version'          => '1.0',
-        'session_timeout'       => 1800,
-        'logout_redirect_url'   => '/login.php',
-        'allow_admin_promotion' => true,
         'trusted_device_days'   => 28,
         'portal_url'            => '',
+        'allow_admin_promotion' => true,
     ];
-}
 
-/**
- * Return portal settings, loading from the API if not already cached.
- * Falls back to built-in defaults if not logged in or API is unreachable.
- */
-function portal_settings_get(): array
-{
-    if (session_status() === PHP_SESSION_NONE) session_start();
+    $result = api_get('/public-config', false);
+    $config = $defaults;
+    if ($result['ok']) {
+        $name = trim((string)($result['data']['site_name'] ?? ''));
+        if ($name !== '') $config['site_name'] = $name;
 
-    if (!empty($_SESSION['portal_settings'])) {
-        return $_SESSION['portal_settings'];
+        $days = $result['data']['trusted_device_days'] ?? null;
+        if (is_numeric($days) && (int)$days > 0) $config['trusted_device_days'] = (int)$days;
+
+        if (isset($result['data']['portal_url'])) {
+            $config['portal_url'] = trim((string)$result['data']['portal_url']);
+        }
+        if (isset($result['data']['allow_admin_promotion'])) {
+            $config['allow_admin_promotion'] = (bool)$result['data']['allow_admin_promotion'];
+        }
     }
 
-    return portal_settings_reload();
+    $_SESSION['public_config'] = $config;
+    return $config;
 }
 
-/**
- * Force a fresh fetch of portal settings from the API and update the cache.
- */
-function portal_settings_reload(): array
-{
-    $defaults = portal_settings_defaults();
-
-    // Only fetch from API if the user is logged in
-    if (empty($_SESSION['logged_in'])) {
-        return $defaults;
-    }
-
-    $result = api_get('/admin/portal-settings');
-
-    if ($result['ok'] && !empty($result['data']['settings'])) {
-        $settings = array_merge($defaults, $result['data']['settings']);
-        $_SESSION['portal_settings'] = $settings;
-        return $settings;
-    }
-
-    return $defaults;
-}
-
-/**
- * Get a single portal setting value.
- */
-function portal_setting(string $key, mixed $default = null): mixed
-{
-    $settings = portal_settings_get();
-    return $settings[$key] ?? $default;
-}
-
-/**
- * Site name for pre-login/public pages (landing.php) — the full
- * portal_setting() family above deliberately never calls the API before
- * login, so it can't be used here. Backed by the public GET /branding
- * endpoint instead, which exposes only the site name and nothing else
- * from portal_settings. Session-cached like portal_settings_get() is, so
- * a visitor's session doesn't re-call the API on every page load.
- */
+/** Site name — shown in every page's title/header, logged in or not. */
 function site_name_public(): string
 {
-    if (session_status() === PHP_SESSION_NONE) session_start();
+    return public_portal_config()['site_name'];
+}
 
-    if (!empty($_SESSION['public_site_name'])) {
-        return $_SESSION['public_site_name'];
-    }
-
-    $default = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
-    $result  = api_get('/branding', false);
-    $name    = $result['ok'] ? trim((string)($result['data']['site_name'] ?? '')) : '';
-
-    $_SESSION['public_site_name'] = $name !== '' ? $name : $default;
-    return $_SESSION['public_site_name'];
+/** Days a "remember this device" cookie/token stays valid — API-authoritative. */
+function trusted_device_days_public(): int
+{
+    return public_portal_config()['trusted_device_days'];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

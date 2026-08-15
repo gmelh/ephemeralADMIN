@@ -62,7 +62,7 @@ function device_token_map(): array
  */
 function device_token_map_save(array $map): void
 {
-    $days = (int)portal_setting('trusted_device_days', 28);
+    $days = trusted_device_days_public();
     setcookie(TRUSTED_DEVICE_COOKIE, json_encode($map), [
         'expires'  => time() + ($days * 86400),
         'path'     => '/',
@@ -182,7 +182,7 @@ function auth_check(): bool
     if (empty($_SESSION['logged_in'])) return false;
 
     // Timeout check
-    if (time() - ($_SESSION['login_time'] ?? 0) > (int)portal_setting('session_timeout', 1800)) {
+    if (time() - ($_SESSION['login_time'] ?? 0) > SESSION_TIMEOUT) {
         auth_logout();
         return false;
     }

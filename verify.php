@@ -48,7 +48,7 @@ if ($token !== '') {
     $error = 'No verification token was provided. Please use the link from your email.';
 }
 
-$site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
+$site_name = site_name_public();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -61,7 +61,7 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --gold:    #c8a84b;
+      --gold:    #ffd700;
       --accent:  #2563ab;
       --error:   #b42424;
       --success: #2f7d3a;
@@ -91,7 +91,7 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
       background-image:
         radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.5) 0%, transparent 100%),
         radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.4) 0%, transparent 100%),
-        radial-gradient(1.5px 1.5px at 50% 70%, rgba(200,168,75,.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 70%, rgba(255,215,0,.5) 0%, transparent 100%),
         radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,.3) 0%, transparent 100%),
         radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,.35) 0%, transparent 100%);
       pointer-events: none;
@@ -152,17 +152,17 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
       font-family: 'Instrument Serif', serif;
       font-size: 24px;
       font-weight: 400;
-      color: #e4e1da;
+      color: #e2e5ea;
       margin-bottom: 8px;
     }
 
     .card__desc {
       font-size: 13.5px;
-      color: #8a8a84;
+      color: #8b95a8;
       line-height: 1.55;
     }
 
-    .card__desc strong { color: #e4e1da; }
+    .card__desc strong { color: #e2e5ea; }
 
     .card__body { padding: 28px 32px 32px; }
 
@@ -178,8 +178,8 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
       font-size: 13px;
     }
 
-    .info-row__label { color: #525250; }
-    .info-row__value { color: #e4e1da; font-family: 'DM Mono', monospace; font-size: 12.5px; }
+    .info-row__label { color: #565f70; }
+    .info-row__value { color: #e2e5ea; font-family: 'DM Mono', monospace; font-size: 12.5px; }
 
     .btn {
       display: block;
@@ -196,7 +196,7 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
       transition: background .15s;
     }
 
-    .btn--primary { background: #4f8fd4; color: #fff; }
+    .btn--primary { background: #0066cc; color: #fff; }
     .btn--primary:hover { background: #3a7bbf; }
 
     .step-list {
@@ -212,7 +212,7 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
       align-items: flex-start;
       gap: 12px;
       font-size: 13.5px;
-      color: #8a8a84;
+      color: #8b95a8;
       line-height: 1.5;
     }
 
@@ -307,7 +307,7 @@ $site_name = defined('SITE_NAME') ? SITE_NAME : 'ephemeralREST';
 
     <div class="card__body">
       <div class="error-box"><?= $error ?></div>
-      <p style="font-size:13px; color:#525250; margin-bottom:20px; line-height:1.55;">
+      <p style="font-size:13px; color:#565f70; margin-bottom:20px; line-height:1.55;">
         Verification links expire after 24 hours and can only be used once.
         If your link has expired, you can register again to receive a new one.
       </p>

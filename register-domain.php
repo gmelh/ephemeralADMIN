@@ -79,7 +79,7 @@ require_once __DIR__ . '/includes/header.php';
   <div class="card" style="max-width:560px;">
     <div class="card__body" style="text-align:center; padding:40px 32px;">
       <div style="font-size:36px; margin-bottom:16px;">✦</div>
-      <h2 style="font-family:var(--font-serif); font-size:24px; font-weight:400; margin-bottom:12px;">
+      <h2 style="font-family:var(--font-heading); font-size:24px; font-weight:400; margin-bottom:12px;">
         Request Received
       </h2>
       <p style="font-size:14px; color:var(--ink-light); margin-bottom:8px;">

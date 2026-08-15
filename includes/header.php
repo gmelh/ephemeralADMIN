@@ -64,7 +64,7 @@ $nav = $is_admin ? $admin_nav : $user_nav;
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= htmlspecialchars($page_title ?? portal_setting('site_name')) ?> — <?= portal_setting('site_name') ?></title>
+  <title><?= htmlspecialchars($page_title ?? site_name_public()) ?> — <?= htmlspecialchars(site_name_public()) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -91,7 +91,7 @@ $nav = $is_admin ? $admin_nav : $user_nav;
       text-decoration: none;
     }
 
-    .mobile-bar__star { font-size: 18px; color: #c8a84b; }
+    .mobile-bar__star { font-size: 18px; color: #ffd700; }
 
     .mobile-bar__name {
       font-family: 'Instrument Serif', serif;
@@ -117,7 +117,7 @@ $nav = $is_admin ? $admin_nav : $user_nav;
       display: block;
       width: 22px;
       height: 2px;
-      background: #e4e1da;
+      background: #e2e5ea;
       border-radius: 2px;
       transition: transform .25s, opacity .25s;
       transform-origin: center;
@@ -163,7 +163,7 @@ $nav = $is_admin ? $admin_nav : $user_nav;
 <div class="mobile-bar">
   <a href="/landing.php" class="mobile-bar__brand">
     <span class="mobile-bar__star">✦</span>
-    <span class="mobile-bar__name"><?= portal_setting('site_name') ?></span>
+    <span class="mobile-bar__name"><?= htmlspecialchars(site_name_public()) ?></span>
   </a>
   <button class="hamburger" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
     <span></span><span></span><span></span>
@@ -180,7 +180,7 @@ $nav = $is_admin ? $admin_nav : $user_nav;
     <div class="sidebar__brand">
       <a href="/landing.php" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
         <span class="sidebar__logo">✦</span>
-        <span class="sidebar__name"><?= portal_setting('site_name') ?></span>
+        <span class="sidebar__name"><?= htmlspecialchars(site_name_public()) ?></span>
       </a>
     </div>
 
@@ -220,7 +220,7 @@ $nav = $is_admin ? $admin_nav : $user_nav;
         ⎋ &nbsp;Sign Out
       </a>
       <?php endif; ?>
-      <span class="sidebar__version">v<?= portal_setting('site_version', '1.0') ?></span>
+      <span class="sidebar__version">v<?= htmlspecialchars(SITE_VERSION) ?></span>
     </div>
   </aside>
 

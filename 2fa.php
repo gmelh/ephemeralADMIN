@@ -80,16 +80,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verify — ephemeralREST</title>
+  <title>Verify — <?= htmlspecialchars(site_name_public()) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ink:     #e4e1da;
+      --ink:     #e2e5ea;
       --border:  #2e2e2c;
       --dark:    #0e0e0d;
-      --gold:    #c8a84b;
+      --gold:    #ffd700;
       --accent:  #2563ab;
       --error:   #b42424;
       --error-bg:#fef0f0;
@@ -121,9 +121,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       left: 50%;
       transform: translate(-50%, -50%);
       background: radial-gradient(ellipse at center,
-        rgba(79, 143, 212, .55)  0%,
-        rgba(79, 143, 212, .28) 18%,
-        rgba(79, 143, 212, .08) 32%,
+        rgba(0,102,204, .55)  0%,
+        rgba(0,102,204, .28) 18%,
+        rgba(0,102,204, .08) 32%,
         transparent             44%
       );
       pointer-events: none;
@@ -167,17 +167,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       font-family: 'Instrument Serif', serif;
       font-size: 24px;
       font-weight: 400;
-      color: var(--ink, #e4e1da);
+      color: var(--ink, #e2e5ea);
       margin-bottom: 6px;
     }
 
     .login-box__desc {
       font-size: 13.5px;
-      color: #8a8a84;
+      color: #8b95a8;
       line-height: 1.5;
     }
 
-    .login-box__desc strong { color: var(--ink, #e4e1da); }
+    .login-box__desc strong { color: var(--ink, #e2e5ea); }
 
     .login-box__body {
       padding: 28px 32px 32px;
@@ -203,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     label {
       font-size: 13px;
       font-weight: 500;
-      color: var(--ink, #e4e1da);
+      color: var(--ink, #e2e5ea);
     }
 
     input[type="text"] {
@@ -215,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       font-size: 22px;
       letter-spacing: .3em;
       text-align: center;
-      color: var(--ink, #e4e1da);
+      color: var(--ink, #e2e5ea);
       background: var(--surface, #1f1f1d);
       transition: border-color .15s, box-shadow .15s;
     }
@@ -242,14 +242,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .checkbox-row label {
       font-size: 13px;
       font-weight: 400;
-      color: #8a8a84;
+      color: #8b95a8;
       margin: 0;
     }
 
     .btn-submit {
       width: 100%;
       padding: 11px 24px;
-      background: #4f8fd4;
+      background: #0066cc;
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -280,7 +280,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <a href="/landing.php" class="login-brand">
   <span class="login-brand__star">✦</span>
-  <span class="login-brand__name">ephemeralREST</span>
+  <span class="login-brand__name"><?= htmlspecialchars(site_name_public()) ?></span>
 </a>
 
 <div class="login-box">
@@ -314,7 +314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="checkbox-row">
         <input type="checkbox" id="remember_device" name="remember_device" value="1">
-        <label for="remember_device">Remember this device for <?= (int)portal_setting('trusted_device_days', 28) ?> days</label>
+        <label for="remember_device">Remember this device for <?= trusted_device_days_public() ?> days</label>
       </div>
 
       <button type="submit" class="btn-submit">Verify →</button>

@@ -45,12 +45,12 @@ $site_name = site_name_public();
       --ink-faint:  #a8a8a0;
       --paper:      #eeebe4;
       --border:     #e4e4dc;
-      --accent:     #2563ab;
+      --accent:     #0066cc;
       --accent-mid: #1e4f8c;
-      --gold:       #c8a84b;
+      --gold:       #ffd700;
       --dark:       #0f0f0e;
       --dark-mid:   #1a1a18;
-      --dark-surface:#222220;
+      --dark-surface:#202632;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -108,8 +108,8 @@ $site_name = site_name_public();
     .nav__cta {
       padding: 7px 18px;
       border-radius: 6px;
-      background: var(--gold);
-      color: var(--dark);
+      background: var(--accent);
+      color: #fff;
       font-size: 13.5px;
       font-weight: 600;
       transition: opacity .2s;
@@ -146,7 +146,7 @@ $site_name = site_name_public();
         radial-gradient(1px 1px at 10% 70%, rgba(255,255,255,.25) 0%, transparent 100%),
         radial-gradient(1.5px 1.5px at 70% 85%, rgba(255,255,255,.45) 0%, transparent 100%),
         radial-gradient(1px 1px at 25% 45%, rgba(255,255,255,.3) 0%, transparent 100%),
-        radial-gradient(2px 2px at 55% 60%, rgba(200,168,75,.6) 0%, transparent 100%);
+        radial-gradient(2px 2px at 55% 60%, rgba(255,215,0,.6) 0%, transparent 100%);
       pointer-events: none;
     }
 
@@ -213,8 +213,8 @@ $site_name = site_name_public();
 
     .btn-hero-primary {
       padding: 14px 32px;
-      background: var(--gold);
-      color: var(--dark);
+      background: var(--accent);
+      color: #fff;
       border-radius: 8px;
       font-size: 15px;
       font-weight: 600;
@@ -553,8 +553,8 @@ $site_name = site_name_public();
       border-radius: 6px;
       font-size: 14px;
       font-weight: 600;
-      background: var(--gold);
-      color: var(--dark);
+      background: var(--accent);
+      color: #fff;
       transition: opacity .2s;
       text-align: center;
     }
@@ -1052,7 +1052,7 @@ $site_name = site_name_public();
                   <input type="text" name="req_domain"
                          value="<?= htmlspecialchars($_POST['req_domain'] ?? '') ?>"
                          placeholder="myapp.com  or  *"
-                         style="width:100%; padding:9px 12px; background:rgba(255,255,255,.06); border:1px solid <?= !empty($req_errors['domain']) ? 'rgba(212,96,96,.5)' : 'rgba(255,255,255,.12)' ?>; border-radius:6px; color:#e4e1da; font-family:inherit; font-size:13.5px; outline:none;">
+                         style="width:100%; padding:9px 12px; background:rgba(255,255,255,.06); border:1px solid <?= !empty($req_errors['domain']) ? 'rgba(212,96,96,.5)' : 'rgba(255,255,255,.12)' ?>; border-radius:6px; color:#e2e5ea; font-family:inherit; font-size:13.5px; outline:none;">
                   <?php if (!empty($req_errors['domain'])): ?>
                     <span style="font-size:11.5px; color:#d46060; display:block; margin-top:2px;"><?= $req_errors['domain'] ?></span>
                   <?php endif; ?>
@@ -1063,7 +1063,7 @@ $site_name = site_name_public();
                   <input type="text" name="req_name"
                          value="<?= htmlspecialchars($_POST['req_name'] ?? '') ?>"
                          placeholder="Jane Smith"
-                         style="width:100%; padding:9px 12px; background:rgba(255,255,255,.06); border:1px solid <?= !empty($req_errors['name']) ? 'rgba(212,96,96,.5)' : 'rgba(255,255,255,.12)' ?>; border-radius:6px; color:#e4e1da; font-family:inherit; font-size:13.5px; outline:none;">
+                         style="width:100%; padding:9px 12px; background:rgba(255,255,255,.06); border:1px solid <?= !empty($req_errors['name']) ? 'rgba(212,96,96,.5)' : 'rgba(255,255,255,.12)' ?>; border-radius:6px; color:#e2e5ea; font-family:inherit; font-size:13.5px; outline:none;">
                 </div>
 
                 <div>
@@ -1071,7 +1071,7 @@ $site_name = site_name_public();
                   <input type="email" name="req_email"
                          value="<?= htmlspecialchars($_POST['req_email'] ?? '') ?>"
                          placeholder="jane@example.com"
-                         style="width:100%; padding:9px 12px; background:rgba(255,255,255,.06); border:1px solid <?= !empty($req_errors['email']) ? 'rgba(212,96,96,.5)' : 'rgba(255,255,255,.12)' ?>; border-radius:6px; color:#e4e1da; font-family:inherit; font-size:13.5px; outline:none;">
+                         style="width:100%; padding:9px 12px; background:rgba(255,255,255,.06); border:1px solid <?= !empty($req_errors['email']) ? 'rgba(212,96,96,.5)' : 'rgba(255,255,255,.12)' ?>; border-radius:6px; color:#e2e5ea; font-family:inherit; font-size:13.5px; outline:none;">
                   <?php if (!empty($req_errors['email'])): ?>
                     <span style="font-size:11.5px; color:#d46060; display:block; margin-top:2px;"><?= $req_errors['email'] ?></span>
                   <?php endif; ?>
@@ -1084,11 +1084,11 @@ $site_name = site_name_public();
                   </label>
                   <textarea name="req_reason" rows="2"
                             placeholder="Brief description…"
-                            style="width:100%; padding:9px 12px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:6px; color:#e4e1da; font-family:inherit; font-size:13.5px; resize:vertical; outline:none;"><?= htmlspecialchars($_POST['req_reason'] ?? '') ?></textarea>
+                            style="width:100%; padding:9px 12px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:6px; color:#e2e5ea; font-family:inherit; font-size:13.5px; resize:vertical; outline:none;"><?= htmlspecialchars($_POST['req_reason'] ?? '') ?></textarea>
                 </div>
 
                 <button type="submit"
-                        style="width:100%; padding:11px; background:var(--gold); color:#0e0e0d; border:none; border-radius:6px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; transition:opacity .2s; margin-top:2px;"
+                        style="width:100%; padding:11px; background:var(--accent); color:#fff; border:none; border-radius:6px; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; transition:opacity .2s; margin-top:2px;"
                         onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
                   Request Key →
                 </button>
@@ -1147,7 +1147,7 @@ $site_name = site_name_public();
   </div>
   <div class="footer__bottom">
     <span>AGPL v3 Licensed · Swiss Ephemeris © Astrodienst AG · <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" style="color:rgba(255,255,255,.4)">Licence</a> · <a href="https://github.com/gmelh/ephemeralREST" target="_blank" style="color:rgba(255,255,255,.4)">GitHub</a></span>
-    <span>ephemeralREST v<?= portal_setting('site_version', '1.0') ?></span>
+    <span>ephemeralREST v<?= htmlspecialchars(SITE_VERSION) ?></span>
   </div>
 </footer>
 

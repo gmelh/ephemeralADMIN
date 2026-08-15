@@ -423,10 +423,10 @@ require_once __DIR__ . '/includes/header.php';
 .cfg-row:last-child { border-bottom: none; }
 
 .cfg-row--override {
-  background: rgba(200,168,75,.05);
+  background: rgba(255,215,0,.05);
   margin: 0 -20px;
   padding: 10px 20px;
-  border-bottom-color: rgba(200,168,75,.15);
+  border-bottom-color: rgba(255,215,0,.15);
 }
 
 .cfg-info {
