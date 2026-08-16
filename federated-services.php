@@ -218,7 +218,7 @@ require_once __DIR__ . '/includes/header.php';
 
       <p id="service-modal-status" style="display:none; font-size:13px; margin-top:12px;"></p>
     </div>
-    <div class="modal__foot">
+    <div class="modal__footer">
       <button class="btn btn--ghost" onclick="closeModal('serviceModal')">Cancel</button>
       <button class="btn btn--primary" id="service-save-btn" onclick="saveService()">Save</button>
     </div>
@@ -237,8 +237,17 @@ function openServiceModal(svc) {
   document.getElementById('service-active-row').style.display = svc ? 'block' : 'none';
   document.getElementById('service-modal-title').textContent = svc ? 'Edit Service' : 'Register Service';
   document.getElementById('service-modal-status').style.display = 'none';
-  document.getElementById('serviceModal').classList.add('modal-overlay--open');
+  document.getElementById('serviceModal').classList.add('is-open');
 }
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('is-open');
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.is-open')
+    .forEach(m => m.classList.remove('is-open'));
+});
 
 async function saveService() {
   const id     = document.getElementById('service-id').value;
