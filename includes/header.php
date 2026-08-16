@@ -94,7 +94,7 @@ $nav = $is_admin ? $admin_nav : $user_nav;
     .mobile-bar__star { font-size: 18px; color: #ffd700; }
 
     .mobile-bar__name {
-      font-family: 'Instrument Serif', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: 17px;
       color: #f0ede8;
     }

@@ -100,7 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       --ink:      #e2e5ea;
       --border:   #2e2e2c;
       --gold:     #ffd700;
-      --accent:   #2563ab;
+      --accent:   #0066cc;
+      --accent-text:#70b8ff;
       --error:    #b42424;
       --error-bg: #fef0f0;
       --success:  #2f7d3a;
@@ -166,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .setup-brand__star { font-size: 22px; color: var(--gold); }
 
     .setup-brand__name {
-      font-family: 'Instrument Serif', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: 20px;
       color: #f0ede8;
     }
@@ -198,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .setup-box__title {
-      font-family: 'Instrument Serif', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: 24px;
       font-weight: 400;
       color: var(--ink);
@@ -253,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     input:focus {
       outline: none;
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(37,99,171,.1);
+      box-shadow: 0 0 0 3px rgba(0,102,204,.1);
     }
 
     .hint { font-size: 12px; color: #565f70; }

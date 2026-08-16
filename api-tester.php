@@ -735,7 +735,7 @@ require_once __DIR__ . '/includes/header.php';
 }
 
 .endpoint-card--active {
-  border-color: var(--gold);
+  border-color: var(--accent);
   background: var(--bg-alt);
 }
 
@@ -785,7 +785,7 @@ require_once __DIR__ . '/includes/header.php';
 .status-badge--err { background: #f0f0f0; color: #666;    }
 
 /* JSON syntax highlighting */
-.json-key  { color: #2563ab; }
+.json-key  { color: var(--accent-text); }
 .json-str  { color: #1e7b4b; }
 .json-num  { color: #ffd700; }
 .json-bool { color: #7c3aed; }

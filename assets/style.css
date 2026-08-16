@@ -27,6 +27,7 @@
      (never on buttons there). */
   --accent:       #0066cc;
   --accent-dark:  #0052a3;
+  --accent-text:  #70b8ff;
   --accent-light: rgba(0,102,204,.12);
   --gold:         #ffd700;
   --gold-light:   rgba(255,215,0,.12);
@@ -64,7 +65,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--accent-text); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 /* ── Layout ── */
@@ -178,7 +179,7 @@ a:hover { text-decoration: underline; }
 .sidebar__link--active {
   background: rgba(255,255,255,.06);
   color: #fff;
-  border-left-color: var(--gold);
+  border-left-color: var(--accent);
 }
 
 .sidebar__icon { font-size: 10px; opacity: .6; width: 14px; }
@@ -278,7 +279,7 @@ a:hover { text-decoration: underline; }
 .flash--success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(76,175,128,.25); }
 .flash--error   { background: var(--error-bg);   color: var(--error);   border: 1px solid rgba(212,96,96,.25); }
 .flash--warning { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(212,148,58,.25); }
-.flash--info    { background: var(--accent-light);color: var(--accent);  border: 1px solid rgba(0,102,204,.25); }
+.flash--info    { background: var(--accent-light);color: var(--accent-text);  border: 1px solid rgba(0,102,204,.25); }
 
 /* ── Stats row ── */
 .stats {
@@ -390,7 +391,7 @@ td.mono { font-family: var(--font-mono); font-size: 12px; }
 .badge--success { background: var(--success-bg); color: var(--success); }
 .badge--warning { background: var(--warning-bg); color: var(--warning); }
 .badge--error   { background: var(--error-bg);   color: var(--error); }
-.badge--blue    { background: var(--accent-light);color: var(--accent); }
+.badge--blue    { background: var(--accent-light);color: var(--accent-text); }
 .badge--purple  { background: var(--purple-bg);  color: var(--purple); }
 
 /* ── Buttons ── */
@@ -541,7 +542,7 @@ textarea { resize: vertical; min-height: 90px; }
   font-size: 13.5px;
   margin-bottom: 20px;
 }
-.alert--info    { background: var(--accent-light); color: var(--accent); border: 1px solid rgba(0,102,204,.2); }
+.alert--info    { background: var(--accent-light); color: var(--accent-text); border: 1px solid rgba(0,102,204,.2); }
 .alert--success { background: var(--success-bg);   color: var(--success); border: 1px solid rgba(76,175,128,.2); }
 .alert--warning { background: var(--warning-bg);   color: var(--warning); border: 1px solid rgba(212,148,58,.2); }
 
@@ -632,7 +633,7 @@ code {
   border: 1px solid var(--border);
   border-radius: 3px;
   padding: 1px 6px;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* ── Modal ── */
@@ -756,7 +757,7 @@ code {
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--gold) transparent;
+  scrollbar-color: var(--accent) transparent;
 }
 
 /* Chromium / Safari */
@@ -770,12 +771,12 @@ code {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gold);
+  background: var(--accent);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d8b600;
+  background: var(--accent-dark);
 }
 
 ::-webkit-scrollbar-corner {

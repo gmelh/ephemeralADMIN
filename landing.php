@@ -46,6 +46,7 @@ $site_name = site_name_public();
       --paper:      #eeebe4;
       --border:     #e4e4dc;
       --accent:     #0066cc;
+      --accent-text:#70b8ff;
       --accent-mid: #1e4f8c;
       --gold:       #ffd700;
       --dark:       #0f0f0e;
@@ -156,7 +157,7 @@ $site_name = site_name_public();
       position: absolute;
       width: 600px; height: 600px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(37,99,171,.12) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(0,102,204,.12) 0%, transparent 70%);
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       pointer-events: none;
@@ -284,7 +285,7 @@ $site_name = site_name_public();
       font-size: 20px;
       margin-bottom: 16px;
       display: block;
-      color: var(--accent);
+      color: var(--accent-text);
     }
 
     .feature__title {

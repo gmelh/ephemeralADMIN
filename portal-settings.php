@@ -33,7 +33,7 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <!-- Appearance -->
-<div class="card" style="margin-bottom:20px; max-width:720px;">
+<div class="card" style="margin-bottom:20px;">
   <div class="card__head"><span class="card__title">Appearance</span></div>
   <div class="card__body">
     <dl class="settings-list">
@@ -49,7 +49,7 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <!-- Session & Security -->
-<div class="card" style="margin-bottom:20px; max-width:720px;">
+<div class="card" style="margin-bottom:20px;">
   <div class="card__head"><span class="card__title">Session &amp; Security</span></div>
   <div class="card__body">
     <dl class="settings-list">
@@ -85,7 +85,7 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <!-- URLs -->
-<div class="card" style="margin-bottom:20px; max-width:720px;">
+<div class="card" style="margin-bottom:20px;">
   <div class="card__head"><span class="card__title">URLs</span></div>
   <div class="card__body">
     <dl class="settings-list">

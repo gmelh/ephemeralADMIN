@@ -73,7 +73,7 @@ require_once __DIR__ . '/includes/header.php';
   These are the fallback limits for every key. Individual keys can override any value on their detail page.
 </div>
 
-<div class="card" style="max-width:720px;">
+<div class="card">
   <div class="card__head"><span class="card__title">Current Defaults</span></div>
   <div class="card__body">
 

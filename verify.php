@@ -62,7 +62,8 @@ $site_name = site_name_public();
   <style>
     :root {
       --gold:    #ffd700;
-      --accent:  #2563ab;
+      --accent:  #0066cc;
+      --accent-text:#70b8ff;
       --error:   #b42424;
       --success: #2f7d3a;
     }
@@ -122,7 +123,7 @@ $site_name = site_name_public();
     }
 
     .brand__star { font-size: 22px; color: var(--gold); }
-    .brand__name { font-family: 'Instrument Serif', serif; font-size: 20px; color: #f0ede8; }
+    .brand__name { font-family: 'Instrument Sans', sans-serif; font-size: 20px; color: #f0ede8; }
 
     .card {
       background: #1f1f1d;
@@ -149,7 +150,7 @@ $site_name = site_name_public();
     }
 
     .card__title {
-      font-family: 'Instrument Serif', serif;
+      font-family: 'Instrument Sans', sans-serif;
       font-size: 24px;
       font-weight: 400;
       color: #e2e5ea;

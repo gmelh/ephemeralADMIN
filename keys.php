@@ -309,7 +309,7 @@ function openKeyModal(key) {
     if (key.admin) {
       adminDiv.innerHTML = '<button class="btn btn--danger btn--sm" onclick="setAdmin(false)">Revoke Admin</button>';
     } else {
-      adminDiv.innerHTML = '<button class="btn btn--danger btn--sm" onclick="setAdmin(true)">Grant Admin</button>';
+      adminDiv.innerHTML = '<button class="btn btn--primary btn--sm" onclick="setAdmin(true)">Grant Admin</button>';
     }
   }
 
@@ -434,7 +434,7 @@ async function setAdmin(grant) {
         if (grant) {
           adminDiv.innerHTML = '<button class="btn btn--danger btn--sm" onclick="setAdmin(false)">Revoke Admin</button>';
         } else {
-          adminDiv.innerHTML = '<button class="btn btn--danger btn--sm" onclick="setAdmin(true)">Grant Admin</button>';
+          adminDiv.innerHTML = '<button class="btn btn--primary btn--sm" onclick="setAdmin(true)">Grant Admin</button>';
         }
       }
       // Update admin badge in table row
