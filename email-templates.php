@@ -216,7 +216,7 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <?php if (!$api_ok): ?>
-  <div class="alert alert--warning" style="max-width:820px; margin-bottom:24px;">
+  <div class="alert alert--warning" style="margin-bottom:24px;">
     Could not load saved template — showing defaults.
     <?php if ($api_error): ?>
       API error: <strong><?= htmlspecialchars($api_error) ?></strong>

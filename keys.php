@@ -213,7 +213,7 @@ require_once __DIR__ . '/includes/header.php';
 
       <!-- Identity -->
       <div class="detail-list" style="margin-bottom:20px;">
-        <dt>Identifier</dt> <dd id="key-detail-id" style="font-family:var(--font-mono);font-size:13px;"></dd>
+        <dt>Identifier</dt> <dd id="key-detail-id" style="font-family:var(--font-sans);font-size:13px;"></dd>
         <dt>Type</dt>       <dd id="key-detail-type"></dd>
         <dt>Prefix</dt>     <dd id="key-detail-prefix" style="font-family:var(--font-mono);font-size:13px;"></dd>
       </div>

@@ -123,8 +123,8 @@ a:hover { text-decoration: underline; }
 
 .sidebar__user-id {
   font-size: 11px;
-  font-family: var(--font-mono);
-  color: var(--sidebar-faint);
+  font-family: var(--font-sans);
+  color: var(--ink-light);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

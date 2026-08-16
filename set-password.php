@@ -242,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       padding: 10px 14px;
       border: 1px solid #3d3d3a;
       border-radius: 6px;
-      font-family: 'DM Mono', monospace;
+      font-family: 'Jost', sans-serif;
       font-size: 13px;
       color: var(--ink, #e2e5ea);
       background: var(--surface, #1f1f1d);

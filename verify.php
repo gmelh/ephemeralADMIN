@@ -180,7 +180,7 @@ $site_name = site_name_public();
     }
 
     .info-row__label { color: #565f70; }
-    .info-row__value { color: #e2e5ea; font-family: 'DM Mono', monospace; font-size: 12.5px; }
+    .info-row__value { color: #e2e5ea; font-family: 'Jost', sans-serif; font-size: 12.5px; }
 
     .btn {
       display: block;

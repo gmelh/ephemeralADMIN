@@ -113,7 +113,7 @@ require_once __DIR__ . '/includes/header.php';
   </div>
 </div>
 
-<div class="alert alert--info" style="max-width:720px; margin-bottom:24px;">
+<div class="alert alert--info" style="margin-bottom:24px;">
   Registering a service here just makes it selectable when granting a key
   access on that key's detail page — it doesn't create, deploy, or connect
   to anything. See <code>DOCS/ARCHITECTURE.md</code>, "Federated service

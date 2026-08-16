@@ -24,7 +24,7 @@ require_once __DIR__ . '/includes/header.php';
   </div>
 </div>
 
-<div class="alert alert--info" style="max-width:720px; margin-bottom:24px;">
+<div class="alert alert--info" style="margin-bottom:24px;">
   These are set via config files, not through the portal — deployment-time
   values and security locks aren't things anyone with portal access should
   be able to change through the portal itself. To change any of these,
@@ -103,7 +103,7 @@ require_once __DIR__ . '/includes/header.php';
 <style>
 .settings-list { display: grid; grid-template-columns: 200px 1fr; gap: 14px 20px; }
 .settings-list dt { font-weight: 600; color: var(--ink-light); font-size: 13px; padding-top: 2px; }
-.settings-list dd { font-size: 14px; }
+.settings-list dd { font-size: 14px; color: var(--ink); }
 .settings-list .hint { display: block; font-size: 12px; color: var(--ink-faint); margin-top: 4px; }
 .settings-list .hint code { font-size: 11.5px; }
 @media (max-width: 640px) {

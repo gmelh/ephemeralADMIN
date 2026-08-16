@@ -166,7 +166,7 @@ require_once __DIR__ . '/includes/header.php';
   </div>
 <?php endif; ?>
 
-<div class="alert alert--info" style="max-width:820px; margin-bottom:24px;">
+<div class="alert alert--info" style="margin-bottom:24px;">
   Fields shown in <strong style="color:var(--gold);">gold</strong> are overriding the server default for this key.
   All other fields are inherited from the server defaults.
   Leave fields at their defaults unless you need a specific change.
