@@ -167,7 +167,7 @@ require_once __DIR__ . '/includes/header.php';
 <?php endif; ?>
 
 <div class="alert alert--info" style="margin-bottom:24px;">
-  Fields shown in <strong style="color:var(--gold);">gold</strong> are overriding the server default for this key.
+  Fields shown in <strong style="color:var(--accent-text);">blue</strong> are overriding the server default for this key.
   All other fields are inherited from the server defaults.
   Leave fields at their defaults unless you need a specific change.
 </div>
@@ -442,7 +442,7 @@ require_once __DIR__ . '/includes/header.php';
   color: var(--ink);
 }
 
-.cfg-label--override { color: var(--gold); }
+.cfg-label--override { color: var(--accent-text); }
 
 .cfg-hint {
   font-size: 12px;
@@ -482,7 +482,7 @@ require_once __DIR__ . '/includes/header.php';
 }
 
 .toggle input:checked ~ .toggle__track {
-  background: var(--gold);
+  background: var(--accent);
 }
 
 .toggle input:checked ~ .toggle__track::after {

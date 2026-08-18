@@ -100,6 +100,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
         exit;
     }
 
+    if ($action === 'get-services') {
+        // Returns both the full registered-services list AND this key's
+        // current grants in one round trip, rather than two separate
+        // fetches from the client.
+        $allResult = my_api_get('/admin/federated-services');
+        $keyResult = my_api_get("/admin/keys/{$key_id}/services");
+
+        $allServices = $allResult['ok'] ? ($allResult['data']['services'] ?? []) : [];
+        $granted     = $keyResult['ok'] ? ($keyResult['data']['services'] ?? []) : [];
+
+        // Normalise granted entries to plain slug strings regardless of
+        // whether the API returns strings or {slug: ...} objects for this
+        // endpoint — defensive, since only admin_set_key_services's INPUT
+        // shape (a list of strings) was directly confirmed against the
+        // API source; this endpoint's own output shape wasn't.
+        $grantedSlugs = array_map(
+            fn($s) => is_array($s) ? ($s['slug'] ?? '') : $s,
+            $granted
+        );
+
+        echo json_encode([
+            'ok'       => true,
+            'services' => $allServices,
+            'granted'  => array_values(array_filter($grantedSlugs)),
+        ]);
+        exit;
+    }
+
+    if ($action === 'save-services') {
+        $services = $input['services'] ?? [];
+        if (!is_array($services)) {
+            echo json_encode(['ok' => false, 'error' => 'Invalid services list']); exit;
+        }
+        // PUT replaces the key's entire grant set in one call — matches a
+        // checkbox-table UI naturally: send the full list of currently
+        // checked slugs every time, rather than tracking individual
+        // grant/revoke deltas.
+        $result = my_api_put("/admin/keys/{$key_id}/services", ['services' => array_values($services)]);
+        echo json_encode($result['ok']
+            ? ['ok' => true,  'message' => 'Federated service access updated.']
+            : ['ok' => false, 'error'   => extractApiError($result)]);
+        exit;
+    }
+
     echo json_encode(['ok' => false, 'error' => 'Unknown action']); exit;
 }
 
@@ -214,7 +258,6 @@ require_once __DIR__ . '/includes/header.php';
       <!-- Identity -->
       <div class="detail-list" style="margin-bottom:20px;">
         <dt>Identifier</dt> <dd id="key-detail-id" style="font-family:var(--font-sans);font-size:13px;"></dd>
-        <dt>Type</dt>       <dd id="key-detail-type"></dd>
         <dt>Prefix</dt>     <dd id="key-detail-prefix" style="font-family:var(--font-mono);font-size:13px;"></dd>
       </div>
 
@@ -222,23 +265,25 @@ require_once __DIR__ . '/includes/header.php';
       <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:12px;">
         Rate Limits <span style="font-weight:400;text-transform:none;letter-spacing:0;">— leave blank to use class default</span>
       </p>
-      <div class="form-grid" style="gap:14px; margin-bottom:20px;">
-        <div class="form-group">
+      <div style="display:flex; gap:12px; margin-bottom:16px;">
+        <div class="form-group" style="max-width:110px;">
           <label for="key-rpm">Per minute</label>
-          <input type="number" id="key-rpm" min="0" placeholder="class default">
+          <input type="number" id="key-rpm" min="0" placeholder="default">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="max-width:110px;">
           <label for="key-rph">Per hour</label>
-          <input type="number" id="key-rph" min="0" placeholder="class default">
+          <input type="number" id="key-rph" min="0" placeholder="default">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="max-width:110px;">
           <label for="key-rpd">Per day</label>
-          <input type="number" id="key-rpd" min="0" placeholder="class default">
+          <input type="number" id="key-rpd" min="0" placeholder="default">
         </div>
       </div>
 
-      <!-- Rotate -->
-      <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:4px;">
+      <!-- Rotate — deliberately no border/heavy top padding here, sits
+           close under the rate limit boxes as part of the same "key
+           settings" grouping rather than reading as its own section. -->
+      <div style="margin-top:4px;">
         <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:8px;">Rotate Key</p>
         <p style="font-size:13px;color:var(--ink-light);margin-bottom:12px;">
           Generate a new API key. The current key stops working immediately. The new key is
@@ -256,11 +301,11 @@ require_once __DIR__ . '/includes/header.php';
         </div>
       </div>
 
-      <!-- Key Type toggle -->
+      <!-- Federated Services -->
       <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:16px;">
-        <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px;">Key Type</p>
-        <div style="display:flex; align-items:center; gap:12px;">
-          <span id="key-type-badge"></span>
+        <p style="font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);margin-bottom:10px;">Federated Services</p>
+        <div id="key-services-list">
+          <p style="font-size:13px;color:var(--ink-light);">Loading…</p>
         </div>
       </div>
 
@@ -304,6 +349,8 @@ function openKeyModal(key) {
 
   currentKeyActive = !!key.active;
 
+  loadKeyServices(key.id);
+
   const adminDiv = document.getElementById('admin-actions');
   if (adminDiv) {
     if (key.admin) {
@@ -322,8 +369,6 @@ function openKeyModal(key) {
 
   document.getElementById('keyModal').classList.add('is-open');
 }
-
-// updateKeyTypeBadge and setKeyType removed — flat key structure
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('is-open');
@@ -498,6 +543,81 @@ function copyKey() {
   navigator.clipboard.writeText(key).then(() => {
     showFlash('success', 'Key copied to clipboard.');
   });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+// Federated Services — populates the checkbox table when the modal opens.
+// Doesn't check key.admin at all: grants are managed the same way
+// regardless of whether the key currently has admin access (admin keys
+// bypass the grant check at request time, but the grant data itself is
+// still real, independent state worth being able to see/edit — e.g. in
+// case admin access is later revoked).
+async function loadKeyServices(keyId) {
+  const container = document.getElementById('key-services-list');
+  container.innerHTML = '<p style="font-size:13px;color:var(--ink-light);">Loading…</p>';
+
+  try {
+    const res = await fetch('/keys.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ action: 'get-services', key_id: parseInt(keyId) })
+    });
+    const data = await res.json();
+
+    if (!data.ok) {
+      container.innerHTML = '<p style="font-size:13px;color:var(--error);">Could not load federated services.</p>';
+      return;
+    }
+    if (!data.services || data.services.length === 0) {
+      container.innerHTML = '<p style="font-size:13px;color:var(--ink-light);">No federated services registered yet.</p>';
+      return;
+    }
+
+    const grantedSet = new Set(data.granted || []);
+    let html = '<table style="width:100%;"><thead><tr>' +
+      '<th style="text-align:left;font-size:11.5px;color:var(--ink-light);font-weight:600;padding-bottom:6px;">Service</th>' +
+      '<th style="text-align:left;font-size:11.5px;color:var(--ink-light);font-weight:600;padding-bottom:6px;width:70px;">Enabled</th>' +
+      '</tr></thead><tbody>';
+    data.services.forEach(svc => {
+      const checked = grantedSet.has(svc.slug) ? 'checked' : '';
+      html += '<tr>' +
+        '<td style="padding:5px 0;font-size:13px;">' + escapeHtml(svc.display_name) + '</td>' +
+        '<td style="padding:5px 0;"><input type="checkbox" data-slug="' + escapeHtml(svc.slug) + '" ' + checked + ' onchange="saveKeyServices()"></td>' +
+        '</tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<p style="font-size:13px;color:var(--error);">Could not load federated services.</p>';
+  }
+}
+
+async function saveKeyServices() {
+  const keyId = document.getElementById('key-id').value;
+  const checked = Array.from(
+    document.querySelectorAll('#key-services-list input[type=checkbox]:checked')
+  ).map(cb => cb.dataset.slug);
+
+  try {
+    const res = await fetch('/keys.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ action: 'save-services', key_id: parseInt(keyId), services: checked })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showFlash('success', data.message);
+    } else {
+      showFlash('error', apiError(data));
+    }
+  } catch (e) {
+    showFlash('error', 'Network error — please try again.');
+  }
 }
 
 document.getElementById('keyModal').addEventListener('click', e => {
