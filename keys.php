@@ -266,17 +266,17 @@ require_once __DIR__ . '/includes/header.php';
         Rate Limits <span style="font-weight:400;text-transform:none;letter-spacing:0;">— leave blank to use class default</span>
       </p>
       <div style="display:flex; gap:12px; margin-bottom:16px;">
-        <div class="form-group" style="max-width:110px;">
+        <div class="form-group" style="flex:1 1 0;">
           <label for="key-rpm">Per minute</label>
-          <input type="number" id="key-rpm" min="0" placeholder="default">
+          <input type="number" id="key-rpm" min="0" placeholder="default" style="width:100%;">
         </div>
-        <div class="form-group" style="max-width:110px;">
+        <div class="form-group" style="flex:1 1 0;">
           <label for="key-rph">Per hour</label>
-          <input type="number" id="key-rph" min="0" placeholder="default">
+          <input type="number" id="key-rph" min="0" placeholder="default" style="width:100%;">
         </div>
-        <div class="form-group" style="max-width:110px;">
+        <div class="form-group" style="flex:1 1 0;">
           <label for="key-rpd">Per day</label>
-          <input type="number" id="key-rpd" min="0" placeholder="default">
+          <input type="number" id="key-rpd" min="0" placeholder="default" style="width:100%;">
         </div>
       </div>
 
@@ -407,6 +407,7 @@ async function saveKeyLimits() {
       document.getElementById('key-rph-' + keyId).textContent = rphVal || '—';
       document.getElementById('key-rpd-' + keyId).textContent = rpdVal || '—';
       showFlash('success', data.message);
+      closeModal('keyModal');
     } else {
       errEl.textContent   = apiError(data);
       errEl.style.display = 'block';
