@@ -49,6 +49,7 @@ $admin_nav = [
     'email-templates'  => ['label' => 'Email Templates',  'icon' => '✎', 'section' => null],
     'portal-settings'  => ['label' => 'Portal Settings',  'icon' => '⚙', 'section' => null],
     'api-tester'      => ['label' => 'API Tester',      'icon' => '⌁', 'section' => 'Tools'],
+    'federation-test' => ['label' => 'Federation Test', 'icon' => '⇄', 'section' => 'Tools'],
 ];
 
 $user_nav = [
