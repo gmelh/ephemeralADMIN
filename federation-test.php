@@ -9,10 +9,18 @@
 // See DOCS/FEDERATION.md (this repo) for the config schema and
 // includes/federation.php for the shared request/discovery logic.
 //
-// The key field below is a plain paste-in, not a dropdown of "your keys" —
-// API keys are never retrievable in plaintext after creation (by design),
-// so there is no list to build a dropdown from. Paste the same key you'd
-// hand to `curl -H "X-API-Key: ..."`.
+// Uses the current admin's own session key automatically via auth_key()
+// — same as api-tester.php already does — rather than a manual paste-in
+// field. Earlier versions of this page required pasting a key because API
+// keys can never be retrieved in plaintext after creation, so there's no
+// way to build a dropdown of *other* keys to test with. But that
+// constraint never actually applied to the *current* session's own key,
+// which is already known server-side for the duration of the login (the
+// same reason api-tester.php never needed a key field either) — federated
+// grants travel with one key across services, so testing with the admin's
+// own key is both simpler and the more realistic test: it fails exactly
+// the way a real caller's request would if that key isn't actually
+// granted access to the service being tested.
 //
 // UI intentionally mirrors api-tester.php's group-tabs + endpoint-cards
 // pattern (same CSS classes: .tabs/.tab/.tab--active, .endpoint-card,
@@ -50,7 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
     $endpointIdx = $input['endpoint_idx'] ?? null;
     $pathParams  = $input['path_params']  ?? [];
     $queryParams = $input['query_params'] ?? [];
-    $apiKey      = $input['api_key']      ?? '';
 
     $config = federation_load_service($slug);
     if ($config === null) {
@@ -102,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_SERVER['HTTP_X_REQUESTED_W
         $endpoint['method'],
         $config['base_url'],
         $resolvedPath,
-        $apiKey !== '' ? $apiKey : null,
+        auth_key(),
         $cleanQuery,
         $requestBody,
         $endpoint['timeout_seconds'] ?? null
@@ -231,16 +238,6 @@ require __DIR__ . '/includes/header.php';
             <button class="btn btn--primary" id="fed-btn-run" onclick="fedRunEndpoint()" style="margin-left:auto;">
               ▶ Run
             </button>
-          </div>
-
-          <div class="form-group" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
-            <label for="fed-api-key">X-API-Key</label>
-            <input type="text" id="fed-api-key" placeholder="Paste a real key granted access to this service">
-            <p class="form-hint">
-              Not stored, not looked up — pasted fresh each time. There's no
-              way for this portal to retrieve a key's plaintext value after
-              creation, so this can't be a dropdown of your own keys.
-            </p>
           </div>
 
           <div id="fed-req-params" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);"></div>
@@ -586,7 +583,6 @@ require __DIR__ . '/includes/header.php';
             endpoint_idx: activeIndex,
             path_params: pathParams,
             query_params: {},
-            api_key: document.getElementById('fed-api-key').value,
             body: requestBody,
           }),
         });
